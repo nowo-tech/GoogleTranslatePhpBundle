@@ -1,0 +1,10 @@
+nowo_google_translate_php:
+    default_profile: default
+    profiles:
+        default:
+            target: es
+            source: null
+            timeout: 10.0
+            connect_timeout: 5.0
+            client: gtx
+            preserve_parameters: false

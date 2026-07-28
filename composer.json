@@ -1,0 +1,118 @@
+{
+    "name": "nowo-tech/google-translate-php-bundle",
+    "description": "Symfony bundle wrapping stichoza/google-translate-php with named profiles, FrankenPHP worker-safe reset, and configurable HTTP timeouts.",
+    "type": "symfony-bundle",
+    "license": "MIT",
+    "keywords": [
+        "symfony",
+        "symfony-bundle",
+        "google-translate",
+        "translation",
+        "frankenphp",
+        "worker",
+        "guzzle"
+    ],
+    "homepage": "https://github.com/nowo-tech/GoogleTranslatePhpBundle",
+    "support": {
+        "issues": "https://github.com/nowo-tech/GoogleTranslatePhpBundle/issues",
+        "source": "https://github.com/nowo-tech/GoogleTranslatePhpBundle",
+        "docs": "https://github.com/nowo-tech/GoogleTranslatePhpBundle/tree/main/docs",
+        "changelog": "https://github.com/nowo-tech/GoogleTranslatePhpBundle/blob/main/docs/CHANGELOG.md"
+    },
+    "authors": [
+        {
+            "name": "Héctor Franco Aceituno",
+            "email": "hectorfranco@nowo.tech",
+            "homepage": "https://github.com/HecFranco",
+            "role": "Developer"
+        },
+        {
+            "name": "Nowo.tech",
+            "homepage": "https://nowo.tech"
+        }
+    ],
+    "require": {
+        "php": ">=8.1 <8.6",
+        "psr/log": "^1.1 || ^2.0 || ^3.0",
+        "stichoza/google-translate-php": "^5.1",
+        "symfony/config": "^6.0 || ^7.0 || ^8.0",
+        "symfony/dependency-injection": "^6.0 || ^7.0 || ^8.0",
+        "symfony/http-kernel": "^6.0 || ^7.0 || ^8.0",
+        "symfony/service-contracts": "^2.5 || ^3.0"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.0",
+        "nowo-tech/phpstan-frankenphp": "^1.0",
+        "phpstan/extension-installer": "^1.4",
+        "phpstan/phpstan": "^2.0",
+        "phpstan/phpstan-phpunit": "^2.0",
+        "phpstan/phpstan-symfony": "^2.0",
+        "phpunit/phpunit": "^10.0 || ^11.0",
+        "rector/rector": "^2.0",
+        "symfony/framework-bundle": "^6.0 || ^7.0 || ^8.0",
+        "symfony/yaml": "^6.0 || ^7.0 || ^8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Nowo\\GoogleTranslatePhpBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Nowo\\GoogleTranslatePhpBundle\\Tests\\": "tests/"
+        }
+    },
+    "archive": {
+        "exclude": [
+            "/demo",
+            "/.cursor"
+        ]
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "phpstan/extension-installer": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "scripts": {
+        "test": "phpunit --colors=always",
+        "test-unit": "phpunit --testsuite=Unit",
+        "test-integration": "phpunit --testsuite=Integration",
+        "test-coverage": "phpunit --colors=always --coverage-html coverage --coverage-clover coverage.xml --coverage-text | tee coverage-php.txt && sh .scripts/php-coverage-percent.sh coverage-php.txt",
+        "coverage-check": "phpunit --colors=always --coverage-text=coverage-output.txt --coverage-clover coverage.xml && sh .scripts/coverage-fail-under.sh coverage-output.txt 100",
+        "test-coverage-100": "@coverage-check",
+        "cs-check": "php-cs-fixer fix --dry-run --diff",
+        "cs-fix": "php-cs-fixer fix",
+        "rector": "rector process",
+        "rector-dry": "rector process --dry-run --no-progress-bar",
+        "phpstan": "phpstan analyse --memory-limit=512M",
+        "update": "composer update --no-interaction",
+        "validate": "composer validate --strict",
+        "qa": [
+            "@cs-check",
+            "@test"
+        ]
+    },
+    "scripts-descriptions": {
+        "test": "Run PHPUnit tests",
+        "test-unit": "Run Unit tests only",
+        "test-integration": "Run Integration tests only",
+        "test-coverage": "Run PHPUnit tests with code coverage",
+        "coverage-check": "Fail if PHP coverage is under 100%",
+        "test-coverage-100": "Alias for coverage-check",
+        "cs-check": "Check code style with PHP-CS-Fixer",
+        "cs-fix": "Fix code style with PHP-CS-Fixer",
+        "rector": "Apply Rector refactoring",
+        "rector-dry": "Run Rector in dry-run mode",
+        "phpstan": "Run PHPStan static analysis",
+        "update": "Update composer.lock (composer update)",
+        "validate": "Validate composer.json (composer validate --strict)",
+        "qa": "Run all quality assurance checks"
+    },
+    "suggest": {
+        "symfony/flex": "For automatic recipe installation",
+        "nowo-tech/translation-yaml-tools-bundle": "Official Google Cloud / DeepL / LibreTranslate backends for YAML catalogues"
+    }
+}

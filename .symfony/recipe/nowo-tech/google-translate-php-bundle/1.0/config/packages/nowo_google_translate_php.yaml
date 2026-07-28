@@ -1,0 +1,19 @@
+# Copy into your application as config/packages/nowo_google_translate_php.yaml
+#
+# REQ-RUNTIME-001: keep profile timeout/connect_timeout below PHP max_execution_time
+# and below FrankenPHP/Caddy write timeouts (see docs/CONFIGURATION.md).
+
+nowo_google_translate_php:
+    default_profile: default
+    profiles:
+        default:
+            target: en
+            # source: null   # auto-detect
+            timeout: 10.0
+            connect_timeout: 5.0
+            client: gtx
+            # url: 'https://translate.google.com/translate_a/single'
+            preserve_parameters: false
+            # preserve_parameters: true
+            # guzzle_options:
+            #     proxy: 'socks5://localhost:1080'

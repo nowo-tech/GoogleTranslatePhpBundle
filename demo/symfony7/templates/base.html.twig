@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Serial Number Bundle - Demo{% endblock %}</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>🔢</text></svg>">
+    {% block stylesheets %}
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+        code { background: #f0f0f0; padding: 0.2em 0.4em; border-radius: 4px; }
+        pre { background: #1e1e1e; color: #d4d4d4; padding: 1rem; border-radius: 8px; overflow-x: auto; }
+        .badge { display: inline-block; background: #000; color: #fff; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.85rem; }
+        section { margin: 2rem 0; }
+        h2 { margin-top: 0; }
+    </style>
+    {% endblock %}
+</head>
+<body>
+    {% block body %}{% endblock %}
+    {% block profiler %}{% endblock %}
+</body>
+</html>

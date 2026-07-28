@@ -1,0 +1,12 @@
+GoogleTranslatePhpBundle is installed.
+
+Inject Nowo\GoogleTranslatePhpBundle\Translator\WorkerSafeGoogleTranslate
+(or Stichoza\GoogleTranslate\GoogleTranslate) and call ->translate().
+
+Config: config/packages/nowo_google_translate_php.yaml
+(named profiles: default_profile + profiles.*.timeout / connect_timeout)
+
+FrankenPHP worker mode: Supported via ResetInterface on the translator service.
+
+Note: this wraps the unofficial Google Translate scraper. Prefer official APIs
+for production workloads (see nowo-tech/translation-yaml-tools-bundle).

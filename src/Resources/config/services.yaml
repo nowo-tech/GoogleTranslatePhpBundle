@@ -1,0 +1,9 @@
+# GoogleTranslatePhpBundle — worker-safe stichoza/google-translate-php
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    # Concrete registration is done in GoogleTranslatePhpExtension
+    # (timeout, source/target, preserve_parameters, kernel.reset).

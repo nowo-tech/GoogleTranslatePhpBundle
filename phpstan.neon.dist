@@ -1,0 +1,18 @@
+# PHPStan configuration for Google Translate PHP Bundle.
+#
+# Static analysis on src/ and tests/ (level 8).
+# Run: make phpstan
+parameters:
+    level: 8
+    paths:
+        - src
+        - tests
+    excludePaths:
+        - demo/*
+        - vendor/*
+    reportUnmatchedIgnoredErrors: false
+    treatPhpDocTypesAsCertain: false
+
+includes:
+  - vendor/nowo-tech/phpstan-frankenphp/ruleset-classic.neon
+  - vendor/nowo-tech/phpstan-frankenphp/ruleset-worker.neon

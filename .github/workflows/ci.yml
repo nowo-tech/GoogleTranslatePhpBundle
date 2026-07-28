@@ -78,10 +78,22 @@ jobs:
             ${{ runner.os }}-php-${{ matrix.php }}-symfony-${{ matrix.symfony }}-composer-
             ${{ runner.os }}-php-${{ matrix.php }}-composer-
 
+      # Symfony 8.1 requires php >=8.4.1; Composer treats "8.4" as 8.4.0 and rejects it.
+      - name: Override platform for Symfony 8 (requires PHP 8.4.1+)
+        if: startsWith(matrix.symfony, '8.')
+        run: composer config platform.php 8.4.1
+
       - name: Install dependencies with Symfony ${{ matrix.symfony }}
         run: |
-          composer require symfony/config:^${{ matrix.symfony }} symfony/dependency-injection:^${{ matrix.symfony }} symfony/http-kernel:^${{ matrix.symfony }} symfony/yaml:^${{ matrix.symfony }} --no-interaction --no-update
-          composer update symfony/* --with-all-dependencies --no-interaction --prefer-dist --no-progress
+          composer require \
+            symfony/config:^${{ matrix.symfony }} \
+            symfony/dependency-injection:^${{ matrix.symfony }} \
+            symfony/http-kernel:^${{ matrix.symfony }} \
+            --dev symfony/framework-bundle:^${{ matrix.symfony }} \
+            --dev symfony/yaml:^${{ matrix.symfony }} \
+            --no-interaction --no-update
+          # Full update so platform PHP (e.g. 8.1) can resolve phpunit 10.x from ^10 || ^11.
+          composer update --with-all-dependencies --no-interaction --prefer-dist --no-progress
 
       - name: Run tests
         run: composer test

@@ -86,4 +86,30 @@ final class ConfigurationTest extends TestCase
             $config['profiles']['default']['url'],
         );
     }
+
+    public function testUrlWithWhitespaceRejected(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+
+        (new Processor())->processConfiguration(new Configuration(), [[
+            'profiles' => [
+                'default' => [
+                    'url' => "https://example.com/translate\n",
+                ],
+            ],
+        ]]);
+    }
+
+    public function testEmptyUrlAllowed(): void
+    {
+        $config = (new Processor())->processConfiguration(new Configuration(), [[
+            'profiles' => [
+                'default' => [
+                    'url' => '',
+                ],
+            ],
+        ]]);
+
+        self::assertSame('', $config['profiles']['default']['url']);
+    }
 }

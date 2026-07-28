@@ -31,7 +31,7 @@ Each profile is registered as `nowo_google_translate_php.translator.<name>` and 
 | `timeout` | `10.0` | Guzzle total request timeout (seconds) |
 | `connect_timeout` | `5.0` | Guzzle connect timeout (seconds) |
 | `client` | `gtx` | Google Translate client param (`gtx` or `webapp`) |
-| `url` | `null` | Optional endpoint override |
+| `url` | `null` | Optional endpoint override (**https:// only**; http/relative rejected) |
 | `preserve_parameters` | `false` | `true`, `false`, or custom regex string |
 | `guzzle_options` | `[]` | Extra Guzzle options (merged; timeouts from profile win) |
 

@@ -98,6 +98,38 @@ final class WorkerSafeGoogleTranslateTest extends TestCase
         $translator->translate('Hello');
     }
 
+    public function testTranslateSuccessLogsWithoutSourceText(): void
+    {
+        $logger = new class() extends AbstractLogger {
+            /** @var list<array{level: string|Stringable, message: string|Stringable, context: array<string, mixed>}> */
+            public array $records = [];
+
+            public function log($level, string|Stringable $message, array $context = []): void
+            {
+                $this->records[] = [
+                    'level'   => $level,
+                    'message' => $message,
+                    'context' => $context,
+                ];
+            }
+        };
+
+        // Same source/target short-circuits upstream without HTTP.
+        $translator = new WorkerSafeGoogleTranslate('es', 'es', [], null, false, $logger);
+        $secret     = 'SECRET_SUCCESS_PAYLOAD';
+
+        self::assertSame($secret, $translator->translate($secret));
+
+        $debug = array_values(array_filter(
+            $logger->records,
+            static fn (array $r): bool => (string) $r['level'] === 'debug',
+        ));
+        self::assertGreaterThanOrEqual(2, count($debug));
+        $encoded = json_encode($logger->records, JSON_THROW_ON_ERROR);
+        self::assertStringNotContainsString($secret, $encoded);
+        self::assertSame(strlen($secret), $debug[0]['context']['bytes']);
+    }
+
     public function testTranslateFailureLogsWithoutSourceText(): void
     {
         $logger = new class() extends AbstractLogger {

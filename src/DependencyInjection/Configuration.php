@@ -66,11 +66,8 @@ final class Configuration implements ConfigurationInterface
                                             return false;
                                         }
 
-                                        if (!is_string($v)) {
-                                            return true;
-                                        }
-
-                                        return !str_starts_with($v, 'https://')
+                                        return !is_string($v)
+                                            || !str_starts_with($v, 'https://')
                                             || preg_match('#\s#', $v) === 1;
                                     })
                                     ->thenInvalid('url must be null/empty or an https:// URL without whitespace.')

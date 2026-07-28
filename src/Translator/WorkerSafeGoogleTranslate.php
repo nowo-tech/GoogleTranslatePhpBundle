@@ -63,8 +63,8 @@ final class WorkerSafeGoogleTranslate extends GoogleTranslate implements ResetIn
         $context = [
             'bundle' => 'nowo_google_translate_php',
             'action' => 'translate',
-            'target' => $this->getTarget(),
-            'source' => $this->getSource(),
+            'target' => $this->target,
+            'source' => $this->source,
             'bytes'  => strlen($string),
         ];
 

@@ -11,6 +11,8 @@ use Stichoza\GoogleTranslate\Tokens\TokenProviderInterface;
 use Symfony\Contracts\Service\ResetInterface;
 use Throwable;
 
+use function strlen;
+
 /**
  * FrankenPHP/worker-safe GoogleTranslate:
  * - Resets mutable instance state between requests ({@see ResetInterface}).

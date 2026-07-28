@@ -11,9 +11,10 @@ Do **not** include Cursor `Co-authored-by` trailers in release commits (REQ-GIT-
 ## Example for v1.0.0
 
 ```bash
-git add docs/CHANGELOG.md docs/UPGRADING.md docs/RELEASE.md docs/CONTRIBUTING.md
+git add docs/CHANGELOG.md docs/UPGRADING.md docs/USAGE.md
 git status   # review
 git commit -m "Release v1.0.0: initial public release"
+make check-no-cursor-coauthor
 git tag -a v1.0.0 -m "Release v1.0.0: initial public release"
 git push origin main
 git push origin v1.0.0

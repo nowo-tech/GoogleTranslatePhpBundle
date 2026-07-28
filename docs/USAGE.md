@@ -42,6 +42,10 @@ $translator->preserveParameters(true)->translate('Hello :name');
 
 The service implements `ResetInterface` and is tagged `kernel.reset`. Between requests Symfony restores default target/source/`preserve_parameters` and clears `lastDetectedSource`.
 
+## Logging
+
+Outbound `translate()` calls emit **debug** (start/success) and **warning** (failure) records with metadata only (`target`, `source`, byte length). Source strings are never logged. See [SECURITY.md](SECURITY.md).
+
 ## Errors
 
 Upstream may throw `RateLimitException`, `LargeTextException`, `TranslationRequestException`, or `TranslationDecodingException`. Handle them in application code; the demo catches rate-limit and request failures gracefully.

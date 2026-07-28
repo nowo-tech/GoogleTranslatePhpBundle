@@ -17,7 +17,11 @@ use Stichoza\GoogleTranslate\Exceptions\TranslationRequestException;
 use Stichoza\GoogleTranslate\GoogleTranslate;
 use Stringable;
 
+use function count;
 use function sprintf;
+use function strlen;
+
+use const JSON_THROW_ON_ERROR;
 
 final class WorkerSafeGoogleTranslateTest extends TestCase
 {
@@ -100,7 +104,7 @@ final class WorkerSafeGoogleTranslateTest extends TestCase
 
     public function testTranslateSuccessLogsWithoutSourceText(): void
     {
-        $logger = new class() extends AbstractLogger {
+        $logger = new class extends AbstractLogger {
             /** @var list<array{level: string|Stringable, message: string|Stringable, context: array<string, mixed>}> */
             public array $records = [];
 
@@ -132,7 +136,7 @@ final class WorkerSafeGoogleTranslateTest extends TestCase
 
     public function testTranslateFailureLogsWithoutSourceText(): void
     {
-        $logger = new class() extends AbstractLogger {
+        $logger = new class extends AbstractLogger {
             /** @var list<array{level: string|Stringable, message: string|Stringable, context: array<string, mixed>}> */
             public array $records = [];
 

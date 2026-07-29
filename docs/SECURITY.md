@@ -1,5 +1,13 @@
 # Security
 
+## Table of contents
+
+- [Reporting a vulnerability](#reporting-a-vulnerability)
+- [Threat model (this bundle)](#threat-model-this-bundle)
+- [Logging (REQ-OBS-001)](#logging-req-obs-001)
+- [Supported versions](#supported-versions)
+- [Release security checklist (12.4.1)](#release-security-checklist-1241)
+
 ## Reporting a vulnerability
 
 Please report security issues privately via GitHub Security Advisories on [`nowo-tech/GoogleTranslatePhpBundle`](https://github.com/nowo-tech/GoogleTranslatePhpBundle) or email the maintainers listed in `composer.json`. Do not open a public issue for undisclosed vulnerabilities.
@@ -46,6 +54,7 @@ Before tagging a release, confirm:
 | **Cryptography** | N/A (no crypto primitives in this bundle). |
 | **Permissions / exposure** | No public HTTP routes shipped by the bundle. |
 | **Limits / DoS** | Profile timeouts documented; avoid unbounded payload sizes in host app. |
+| **REQ-SEC-004 (AI audit)** | Pass (conditional) — Medium residual (unofficial scrape; HTTPS `url` host trust). Recorded in the Nowo org security matrix (AI audit 2026-07-28; remediation 2026-07-29). |
 | **Release notes** | Security-relevant changes reflected in `CHANGELOG.md` / `UPGRADING.md` when needed. |
 
 Recommended commands:

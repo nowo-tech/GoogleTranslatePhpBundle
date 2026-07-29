@@ -2,6 +2,14 @@
 
 GoogleTranslatePhpBundle follows Nowo’s Spec Kit baseline ([REQ-SPECKIT-001](https://github.com/nowo-tech/GoogleTranslatePhpBundle/blob/main/docs/SPEC-KIT.md) … [REQ-SPECKIT-003](SPEC-KIT.md)).
 
+## Table of contents
+
+- [Three layers](#three-layers)
+- [Product intent](#product-intent)
+- [User stories](#user-stories)
+- [Traceability](#traceability)
+- [Workflow (incremental features)](#workflow-incremental-features)
+
 ## Three layers
 
 1. **Product baseline** — `specs/001-baseline/spec.md` (user scenarios + domain `FR-*`) and `code-inventory.md` (100% of `src/`).

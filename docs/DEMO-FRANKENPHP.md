@@ -2,6 +2,13 @@
 
 Demos under `demo/symfony7` and `demo/symfony8` run on **FrankenPHP** with Caddy.
 
+## Table of contents
+
+- [FRANKENPHP_MODE (REQ-DEMO-010)](#frankenphp_mode-req-demo-010)
+- [Worker compatibility](#worker-compatibility)
+- [Timeouts (REQ-RUNTIME-001)](#timeouts-req-runtime-001)
+- [Run](#run)
+
 ## FRANKENPHP_MODE (REQ-DEMO-010)
 
 In `.env.example` / Compose:

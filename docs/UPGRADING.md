@@ -1,5 +1,17 @@
 # Upgrading
 
+## 1.0.1
+
+No application or public API changes for consumers of `WorkerSafeGoogleTranslate` / named profiles.
+
+**Applications:** no upgrade steps beyond `composer update nowo-tech/google-translate-php-bundle`.
+
+**Contributors / demos:**
+
+- Prefer Compose V2 (`docker compose`); Makefiles fall back to `docker-compose` when needed.
+- `make release-check` now also runs `check-open-prs` (REQ-REL-003) and demo smoke remains available via `make demo-smoke`.
+- Demos register `DebugBundle` in `dev`/`test` (REQ-DEMO-001). Rebuild/install demo deps if you use the local demos: `make -C demo/symfony7 install` (or symfony8).
+
 ## 1.0.0
 
 First public release. No prior stable tags to migrate from.

@@ -7,9 +7,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.0.1] - 2026-07-29](#101---2026-07-29)
 - [[1.0.0] - 2026-07-28](#100---2026-07-28)
 
 ## [Unreleased]
+
+## [1.0.1] - 2026-07-29
+
+### Added
+
+- **`make demo-smoke`** — boots demos and asserts HTTP 200 (REQ-TEST-011); wired for pre-release use via demo `release-verify`.
+- **`make check-open-prs`** — fails when unresolved open GitHub PRs remain (REQ-REL-003); included in `release-check`.
+- **Compose V2 preference** — root and demo Makefiles prefer `docker compose`, with fallback to `docker-compose` (REQ-MAKE-010).
+- **Optional monorepo Makefile includes** — `-include` for update-deps helpers so standalone GitHub checkouts do not break (REQ-MAKE-009).
+- **Demo DebugBundle** — Symfony Debug Bundle registered in demo `bundles.php` / `composer.json` (dev/test) for the mandatory demo stack.
+
+### Changed
+
+- **CI / PHPUnit** — `SYMFONY_DEPRECATIONS_HELPER=max[direct]=0` in `phpunit.xml.dist` and CI test steps (REQ-SF-005).
+
+### Documentation
+
+- TOC sections on CONTRIBUTING, USAGE, SECURITY, DEMO-FRANKENPHP, GITHUB_CI, SPEC-DRIVEN-DEVELOPMENT (REQ-DOCS-005).
+- SECURITY 12.4.1 checklist notes REQ-SEC-004 Pass (conditional) grade and residual risk.
 
 ## [1.0.0] - 2026-07-28
 
@@ -38,5 +58,6 @@ First public release of `nowo-tech/google-translate-php-bundle`.
 - Threat model and 12.4.1 release checklist in [SECURITY.md](SECURITY.md).
 - REQ-SEC-004 Pass (conditional): residual risk from unofficial Google scrape and trusted HTTPS URL hosts — see monorepo security analysis.
 
-[Unreleased]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/releases/tag/v1.0.1
 [1.0.0]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/releases/tag/v1.0.0

@@ -1,5 +1,13 @@
 # Usage
 
+## Table of contents
+
+- [Inject the translator](#inject-the-translator)
+- [Preserve placeholders](#preserve-placeholders)
+- [FrankenPHP worker](#frankenphp-worker)
+- [Logging](#logging)
+- [Errors](#errors)
+
 ## Inject the translator
 
 ```php

@@ -4,7 +4,6 @@ FrankenPHP demos for **GoogleTranslatePhpBundle**.
 
 | Demo | Symfony | Path |
 |------|---------|------|
-| Symfony 7 | 7.4+ | [`demo/symfony7`](symfony7/) |
 | Symfony 8 | 8.1 | [`demo/symfony8`](symfony8/) |
 
 ## Quick start

@@ -7,10 +7,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.0.2] - 2026-08-18](#102---2026-08-18)
 - [[1.0.1] - 2026-07-29](#101---2026-07-29)
 - [[1.0.0] - 2026-07-28](#100---2026-07-28)
 
 ## [Unreleased]
+
+## [1.0.2] - 2026-08-18
+
+### Changed
+
+- **Demos:** pin `nowo-tech/hot-reload-bundle` to `^1.4` with FrankenPHP Mercure/`hot_reload` (`dev`/`test` only).
+- **Demos:** Symfony 8 only; Symfony 6/7 demo apps removed.
+
+[1.0.2]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/releases/tag/v1.0.2
 
 ## [1.0.1] - 2026-07-29
 
@@ -58,6 +68,6 @@ First public release of `nowo-tech/google-translate-php-bundle`.
 - Threat model and 12.4.1 release checklist in [SECURITY.md](SECURITY.md).
 - REQ-SEC-004 Pass (conditional): residual risk from unofficial Google scrape and trusted HTTPS URL hosts — see monorepo security analysis.
 
-[Unreleased]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/compare/v1.0.2...HEAD
 [1.0.1]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/releases/tag/v1.0.1
 [1.0.0]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/releases/tag/v1.0.0

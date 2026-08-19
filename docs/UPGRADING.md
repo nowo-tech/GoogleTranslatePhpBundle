@@ -1,5 +1,13 @@
 # Upgrading
 
+## 1.0.3 (2026-08-19)
+
+No application upgrade steps.
+
+```bash
+composer update nowo-tech/google-translate-php
+```
+
 ## 1.0.2 (Symfony 8 demos / Hot Reload 1.4)
 
 - No application upgrade steps. **Demos only:** Hot Reload Bundle `^1.4` (FrankenPHP Mercure/`hot_reload`, `dev`/`test`). Shipped demos are Symfony 8 only (Symfony 6/7 demo apps removed).

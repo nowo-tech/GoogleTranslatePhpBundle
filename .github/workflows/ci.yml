@@ -94,6 +94,9 @@ jobs:
             --no-interaction --no-update
           # Full update so platform PHP (e.g. 8.1) can resolve phpunit 10.x from ^10 || ^11.
           composer update --with-all-dependencies --no-interaction --prefer-dist --no-progress
+      - name: Composer audit (Critical/High)
+        run: composer audit --locked
+
 
       - name: Run tests
         env:

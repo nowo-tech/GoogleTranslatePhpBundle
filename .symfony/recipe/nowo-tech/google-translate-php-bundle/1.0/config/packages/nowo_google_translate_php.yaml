@@ -2,6 +2,7 @@
 #
 # REQ-RUNTIME-001: keep profile timeout/connect_timeout below PHP max_execution_time
 # and below FrankenPHP/Caddy write timeouts (see docs/CONFIGURATION.md).
+# Outbound HTTP is host-owned; do not expose raw scrape endpoints publicly.
 
 nowo_google_translate_php:
     default_profile: default
@@ -17,3 +18,10 @@ nowo_google_translate_php:
             # preserve_parameters: true
             # guzzle_options:
             #     proxy: 'socks5://localhost:1080'
+
+when@prod:
+    nowo_google_translate_php:
+        profiles:
+            default:
+                timeout: 8.0
+                connect_timeout: 3.0

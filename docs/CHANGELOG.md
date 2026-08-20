@@ -7,11 +7,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.0.4] - 2026-08-20](#104---2026-08-20)
 - [[1.0.2] - 2026-08-18](#102---2026-08-18)
 - [[1.0.1] - 2026-07-29](#101---2026-07-29)
 - [[1.0.0] - 2026-07-28](#100---2026-07-28)
 
 ## [Unreleased]
+
+## [1.0.4] - 2026-08-20
+
+### Security
+
+- **Flex recipe `when@prod`:** tighter default profile timeouts (`timeout: 8.0`, `connect_timeout: 3.0`). Prefer **`^1.0.4`**.
+
+[1.0.4]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/releases/tag/v1.0.4
 
 ## [1.0.3] - 2026-08-19
 

@@ -1,5 +1,13 @@
 # Upgrading
 
+## 1.0.4 (2026-08-20)
+
+Review Flex `when@prod` outbound timeouts (`8s` / `3s` connect). Raise them together with PHP/proxy deadlines if needed.
+
+```bash
+composer update nowo-tech/google-translate-php
+```
+
 ## 1.0.3 (2026-08-19)
 
 No application upgrade steps.

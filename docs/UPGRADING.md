@@ -1,5 +1,27 @@
 # Upgrading
 
+## Table of contents
+
+- [From 1.0.4 to 1.0.5](#from-104-to-105)
+
+## From 1.0.4 to 1.0.5
+
+Review the [CHANGELOG](CHANGELOG.md) entry. PHP **8.2+** may now be required.
+
+```bash
+composer update nowo-tech/google-translate-php-bundle
+```
+
+## From 1.0.4 to 1.0.5
+
+Review the [CHANGELOG](CHANGELOG.md) entry. PHP **8.2+** may now be required.
+
+```bash
+composer update nowo-tech/google-translate-php-bundle
+```
+
+# Upgrading
+
 ## 1.0.4 (2026-08-20)
 
 Review Flex `when@prod` outbound timeouts (`8s` / `3s` connect). Raise them together with PHP/proxy deadlines if needed.

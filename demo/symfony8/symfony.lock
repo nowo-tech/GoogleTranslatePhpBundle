@@ -1,9 +1,12 @@
 {
-    "nowo-tech/serial-number-bundle": {
+    "nowo-tech/google-translate-php-bundle": {
         "version": "dev-main"
     },
     "nowo-tech/hot-reload-bundle": {
         "version": "v1.3.2"
+    },
+    "nowo-tech/serial-number-bundle": {
+        "version": "dev-main"
     },
     "nowo-tech/twig-inspector-bundle": {
         "version": "v1.0.22"
@@ -33,6 +36,18 @@
         },
         "files": [
             "bin/console"
+        ]
+    },
+    "symfony/debug-bundle": {
+        "version": "8.1",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "5.3",
+            "ref": "5aa8aa48234c8eb6dbdd7b3cd5d791485d2cec4b"
+        },
+        "files": [
+            "config/packages/debug.yaml"
         ]
     },
     "symfony/flex": {
@@ -106,5 +121,8 @@
             "config/packages/web_profiler.yaml",
             "config/routes/web_profiler.yaml"
         ]
+    },
+    "twig/extra-bundle": {
+        "version": "v3.24.0"
     }
 }

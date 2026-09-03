@@ -16,7 +16,7 @@ return [
     DebugBundle::class              => ['dev' => true, 'test' => true],
     WebProfilerBundle::class        => ['dev' => true, 'test' => true],
     GoogleTranslatePhpBundle::class => ['all' => true],
-    NowoHotReloadBundle::class  => ['dev' => true, 'test' => true],
+    NowoHotReloadBundle::class     => ['dev' => true, 'test' => true],
     NowoTwigInspectorBundle::class  => ['dev' => true, 'test' => true],
     TwigExtraBundle::class => ['all' => true],
 ];

@@ -2,11 +2,12 @@
 
 ## Table of contents
 
+- [From 1.0.5 to 1.0.6](#from-105-to-106)
 - [From 1.0.4 to 1.0.5](#from-104-to-105)
 
-## From 1.0.4 to 1.0.5
+## From 1.0.5 to 1.0.6
 
-Review the [CHANGELOG](CHANGELOG.md) entry. PHP **8.2+** may now be required.
+No breaking changes. **No application upgrade steps.**
 
 ```bash
 composer update nowo-tech/google-translate-php-bundle

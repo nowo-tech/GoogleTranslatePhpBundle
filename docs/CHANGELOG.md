@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.0.6] - 2026-09-07](#106---2026-09-07)
+- [[1.0.5] - 2026-08-24](#105---2026-08-24)
 - [[1.0.4] - 2026-08-20](#104---2026-08-20)
 - [[1.0.2] - 2026-08-18](#102---2026-08-18)
 - [[1.0.1] - 2026-07-29](#101---2026-07-29)
@@ -14,6 +16,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [1.0.6] - 2026-09-07
+
+### Changed
+
+- **Dependency:** bump `symfony/service-contracts`.
+- **Deps (dev):** phpstan / rector / php-cs-fixer bumps.
+- **Style:** demo `bundles.php` CS alignment.
+
+### Notes
+
+- **No API or configuration changes** for integrators.
+
+[1.0.6]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/releases/tag/v1.0.6
 
 ## [1.0.5] - 2026-08-24
 

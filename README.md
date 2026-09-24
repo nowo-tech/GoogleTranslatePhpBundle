@@ -13,7 +13,7 @@ This bundle is **FrankenPHP worker mode friendly**.
 ## Features
 
 - **Named profiles** (`default_profile` + `profiles`) for target/source languages, Guzzle timeouts, client, URL, and `preserve_parameters`.
-- **Worker-safe translator**: clears mutable state between requests under FrankenPHP worker / long-running PHP.
+- **Worker-safe translator**: clears mutable state between requests under FrankenPHP worker / long-running PHP — including when the kernel is not reset (`ResetTranslatorsOnRequestSubscriber`).
 - **Defensive `extractParameters()`**: per-call placeholder counter (no reliance on upstream `static $index`).
 - **REQ-RUNTIME-001 timeouts**: `timeout` + `connect_timeout` on every profile.
 
@@ -55,7 +55,7 @@ final class MyService
 
 ## Requirements
 
-- PHP >= 8.1, < 8.6
+- PHP >= 8.2, < 8.6
 - Symfony 6.0+, 7.4+, 8.0, or 8.1 (see `composer.json`; CI exercises 6.4, 7.0, 7.4, 8.0, and 8.1)
 - `stichoza/google-translate-php` ^5.1
 
@@ -81,8 +81,9 @@ Upstream scrapes Google Translate (unofficial). Prefer Cloud Translation / DeepL
 
 ### Additional documentation
 
-- [Demo (Symfony 7 & 8)](demo/README.md) — run `make -C demo up-symfony8` from the bundle root.
+- [Demo (Symfony 8)](demo/README.md) — run `make -C demo up-symfony8` from the bundle root.
 - [Demo with FrankenPHP (development and production)](docs/DEMO-FRANKENPHP.md)
+- [FrankenPHP worker audit (kernel not reset)](docs/FRANKENPHP-WORKER-AUDIT.md)
 - [GitHub Actions CI requirements](docs/GITHUB_CI.md)
 
 ## Tests and coverage

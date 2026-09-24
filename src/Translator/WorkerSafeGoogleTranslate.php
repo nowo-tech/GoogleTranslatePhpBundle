@@ -15,7 +15,10 @@ use function strlen;
 
 /**
  * FrankenPHP/worker-safe GoogleTranslate:
- * - Resets mutable instance state between requests ({@see ResetInterface}).
+ * - Resets every mutable setting (target, source, pattern, URL, client, Guzzle options, token provider)
+ *   to the constructor values ({@see ResetInterface}); the bundle also calls {@see reset()} at the start
+ *   of each main request, so per-request setter calls never reach the next request even without
+ *   {@code services_resetter}.
  * - Uses a per-call placeholder counter instead of upstream {@code static $index}
  *   in {@see GoogleTranslate::extractParameters()}.
  * - Logs outbound translate start/success/failure without source text (REQ-OBS-001).
@@ -25,6 +28,11 @@ use function strlen;
  */
 final class WorkerSafeGoogleTranslate extends GoogleTranslate implements ResetInterface
 {
+    /**
+     * Timeouts applied by {@see trans()} when the caller does not pass them.
+     */
+    public const DEFAULT_TRANS_OPTIONS = ['timeout' => 10.0, 'connect_timeout' => 5.0];
+
     private readonly string $defaultTarget;
 
     private readonly ?string $defaultSource;
@@ -33,8 +41,19 @@ final class WorkerSafeGoogleTranslate extends GoogleTranslate implements ResetIn
 
     private readonly LoggerInterface $logger;
 
+    private readonly string $defaultUrl;
+
+    private readonly mixed $defaultClient;
+
+    /** @var array<string, mixed> */
+    private readonly array $defaultOptions;
+
+    private readonly TokenProviderInterface $defaultTokenProvider;
+
     /**
      * @param array<string, mixed> $options Guzzle client options (e.g. timeout, connect_timeout, proxy)
+     * @param string|null $url Google Translate endpoint (null keeps the upstream default)
+     * @param string|null $client Google Translate {@code client} URL param (null keeps the upstream default)
      */
     public function __construct(
         string $target = 'en',
@@ -43,6 +62,8 @@ final class WorkerSafeGoogleTranslate extends GoogleTranslate implements ResetIn
         ?TokenProviderInterface $tokenProvider = null,
         bool|string $preserveParameters = false,
         ?LoggerInterface $logger = null,
+        ?string $url = null,
+        ?string $client = null,
     ) {
         $this->defaultTarget             = $target;
         $this->defaultSource             = $source;
@@ -50,6 +71,18 @@ final class WorkerSafeGoogleTranslate extends GoogleTranslate implements ResetIn
         $this->logger                    = $logger ?? new NullLogger();
 
         parent::__construct($target, $source, $options, $tokenProvider, $preserveParameters);
+
+        if ($url !== null && $url !== '') {
+            parent::setUrl($url);
+        }
+        if ($client !== null && $client !== '') {
+            parent::setClient($client);
+        }
+
+        $this->defaultUrl           = $this->url;
+        $this->defaultClient        = $this->urlParams['client'] ?? null;
+        $this->defaultOptions       = $this->options;
+        $this->defaultTokenProvider = $this->tokenProvider;
     }
 
     public function reset(): void
@@ -58,10 +91,34 @@ final class WorkerSafeGoogleTranslate extends GoogleTranslate implements ResetIn
         $this->setTarget($this->defaultTarget);
         $this->setSource($this->defaultSource);
         $this->preserveParameters($this->defaultPreserveParameters);
+        $this->setUrl($this->defaultUrl);
+        $this->urlParams['client'] = $this->defaultClient;
+        $this->setOptions($this->defaultOptions);
+        $this->setTokenProvider($this->defaultTokenProvider);
+    }
+
+    /**
+     * Same as the parent helper (a fresh instance per call, so no shared state), with the
+     * bundle's default timeouts when {@code $options} does not set them.
+     *
+     * @param array<string, mixed> $options
+     */
+    public static function trans(
+        string $string,
+        string $target = 'en',
+        ?string $source = null,
+        array $options = [],
+        ?TokenProviderInterface $tokenProvider = null,
+        bool|string $preserveParameters = false,
+    ): ?string {
+        return parent::trans($string, $target, $source, $options + self::DEFAULT_TRANS_OPTIONS, $tokenProvider, $preserveParameters);
     }
 
     public function translate(string $string): ?string
     {
+        // Upstream returns early (same source/target, empty response) without touching it.
+        $this->lastDetectedSource = null;
+
         $context = [
             'bundle' => 'nowo_google_translate_php',
             'action' => 'translate',

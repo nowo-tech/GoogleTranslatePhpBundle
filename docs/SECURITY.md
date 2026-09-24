@@ -20,7 +20,7 @@ Also see [`.github/SECURITY.md`](../.github/SECURITY.md).
 |------|------------|
 | Unofficial Google Translate scraping may break or rate-limit | Documented disclaimer; prefer official APIs for production |
 | Hung outbound HTTP under FrankenPHP worker | Profile `timeout` + `connect_timeout` (REQ-RUNTIME-001) |
-| Mutable translator state across worker requests | `ResetInterface` / `kernel.reset` |
+| Mutable translator state across worker requests | `ResetInterface` / `kernel.reset` **and** `ResetTranslatorsOnRequestSubscriber` on each main request (safe without `services_resetter`) |
 | SSRF via profile `url` override | Config tree allows only `https://` URLs (or null/empty default) |
 | Secrets in config | No API keys required by upstream; do not commit `.env` secrets |
 | PII in logs | Outbound translate logs metadata only (target/source/byte length); never source text |

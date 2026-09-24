@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.0.7] - 2026-09-24](#107---2026-09-24)
 - [[1.0.6] - 2026-09-07](#106---2026-09-07)
 - [[1.0.5] - 2026-08-24](#105---2026-08-24)
 - [[1.0.4] - 2026-08-20](#104---2026-08-20)
@@ -15,6 +16,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [[1.0.0] - 2026-07-28](#100---2026-07-28)
 
 ## [Unreleased]
+
+## [1.0.7] - 2026-09-24
+
+### Fixed
+
+- **Worker mode without `services_resetter` / kernel not reset:** new `EventSubscriber\ResetTranslatorsOnRequestSubscriber` resets every already-instantiated translator profile at the start of each main request (`kernel.request`, priority 4096). Setter calls (`setTarget()`, `preserveParameters()`, `setOptions()`, …) and `lastDetectedSource` no longer leak into the next request in FrankenPHP workers.
+- **`reset()`** now also restores `url`, the `client` URL param, the Guzzle options (including `timeout` / `connect_timeout`) and the token provider.
+- **`translate()`** clears `lastDetectedSource` before each call, so an early return (same source/target, empty response) no longer exposes the previous value.
+
+### Changed
+
+- `url` / `client` are passed as new optional constructor arguments (`$url`, `$client`) instead of `setUrl()` / `setClient()` method calls, so they are the values restored by `reset()`.
+- `WorkerSafeGoogleTranslate::trans()` adds the default `timeout` (10 s) / `connect_timeout` (5 s) when `$options` does not set them (`DEFAULT_TRANS_OPTIONS`).
+
+### Documentation
+
+- [FRANKENPHP-WORKER-AUDIT.md](FRANKENPHP-WORKER-AUDIT.md) — full worker / scenario-B audit (verdict: viable).
+- Spec Kit baseline inventory + FRs for request-boundary reset without `services_resetter`.
+- USAGE / DEMO-FRANKENPHP / ENGRAM / UPGRADING updated for kernel-not-reset behaviour.
 
 ## [1.0.6] - 2026-09-07
 
@@ -28,8 +48,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - **No API or configuration changes** for integrators.
 
-[1.0.6]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/releases/tag/v1.0.6
-
 ## [1.0.5] - 2026-08-24
 
 ### Changed
@@ -41,15 +59,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - **No API or configuration changes** for integrators unless noted above.
 
-[1.0.5]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/releases/tag/v1.0.5
-
 ## [1.0.4] - 2026-08-20
 
 ### Security
 
 - **Flex recipe `when@prod`:** tighter default profile timeouts (`timeout: 8.0`, `connect_timeout: 3.0`). Prefer **`^1.0.4`**.
-
-[1.0.4]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/releases/tag/v1.0.4
 
 ## [1.0.3] - 2026-08-19
 
@@ -63,8 +77,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - **Demos:** pin `nowo-tech/hot-reload-bundle` to `^1.4` with FrankenPHP Mercure/`hot_reload` (`dev`/`test` only).
 - **Demos:** Symfony 8 only; Symfony 6/7 demo apps removed.
-
-[1.0.2]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/releases/tag/v1.0.2
 
 ## [1.0.1] - 2026-07-29
 
@@ -112,6 +124,11 @@ First public release of `nowo-tech/google-translate-php-bundle`.
 - Threat model and 12.4.1 release checklist in [SECURITY.md](SECURITY.md).
 - REQ-SEC-004 Pass (conditional): residual risk from unofficial Google scrape and trusted HTTPS URL hosts — see monorepo security analysis.
 
-[Unreleased]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/compare/v1.0.7...HEAD
+[1.0.7]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/releases/tag/v1.0.7
+[1.0.6]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/releases/tag/v1.0.6
+[1.0.5]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/releases/tag/v1.0.5
+[1.0.4]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/releases/tag/v1.0.4
+[1.0.2]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/releases/tag/v1.0.2
 [1.0.1]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/releases/tag/v1.0.1
 [1.0.0]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/releases/tag/v1.0.0

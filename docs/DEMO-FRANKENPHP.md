@@ -2,7 +2,7 @@
 
 **REQ-DEMO-001:** FrankenPHP demos must install **Nowo Twig Inspector** and **Nowo Hot Reload** together (`nowo-tech/twig-inspector-bundle` + `nowo-tech/hot-reload-bundle` in `require-dev`). Caddyfile: Mercure + `hot_reload` (and `worker { file …; watch }` in worker mode). Do not enable Hot Reload in production.
 
-Demos under `demo/symfony8` and `demo/symfony8` run on **FrankenPHP** with Caddy.
+Demos under `demo/symfony8` run on **FrankenPHP** with Caddy.
 
 ## Table of contents
 
@@ -30,7 +30,9 @@ See `docker/entrypoint.sh` and `docker/frankenphp/Caddyfile` / `Caddyfile.dev`.
 
 ## Worker compatibility
 
-`WorkerSafeGoogleTranslate` implements `ResetInterface` and is tagged `kernel.reset`, so target/source/`lastDetectedSource`/`preserve_parameters` do not leak across requests.
+`WorkerSafeGoogleTranslate` implements `ResetInterface` and is tagged `kernel.reset`.
+
+In addition, `ResetTranslatorsOnRequestSubscriber` calls `reset()` at the start of every **main** request so profile defaults are restored even when FrankenPHP reuses the kernel **without** running `services_resetter` between requests. Full audit: [FRANKENPHP-WORKER-AUDIT.md](FRANKENPHP-WORKER-AUDIT.md).
 
 ## Timeouts (REQ-RUNTIME-001)
 

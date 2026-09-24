@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace Nowo\GoogleTranslatePhpBundle\Tests\Unit\DependencyInjection;
 
 use Nowo\GoogleTranslatePhpBundle\DependencyInjection\GoogleTranslatePhpExtension;
+use Nowo\GoogleTranslatePhpBundle\EventSubscriber\ResetTranslatorsOnRequestSubscriber;
 use Nowo\GoogleTranslatePhpBundle\Exception\UnknownProfileException;
 use Nowo\GoogleTranslatePhpBundle\Translator\WorkerSafeGoogleTranslate;
 use PHPUnit\Framework\TestCase;
 use Stichoza\GoogleTranslate\GoogleTranslate;
+use Symfony\Component\DependencyInjection\Argument\IteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Reference;
 
 final class GoogleTranslatePhpExtensionTest extends TestCase
@@ -66,9 +69,41 @@ final class GoogleTranslatePhpExtensionTest extends TestCase
         self::assertSame('socks5://localhost:1080', $args['$options']['proxy']);
         self::assertEqualsWithDelta(10.0, $args['$options']['timeout'], 0.001);
 
-        $calls = $definition->getMethodCalls();
-        self::assertContains(['setUrl', ['https://translate.google.cn/translate_a/single']], $calls);
-        self::assertContains(['setClient', ['webapp']], $calls);
+        self::assertSame('https://translate.google.cn/translate_a/single', $args['$url']);
+        self::assertSame('webapp', $args['$client']);
+        self::assertSame([], $definition->getMethodCalls());
+    }
+
+    public function testRegistersRequestResetSubscriberForAllProfilesWithoutInstantiatingThem(): void
+    {
+        $container = new ContainerBuilder();
+        (new GoogleTranslatePhpExtension())->load([[
+            'profiles' => [
+                'default' => [],
+                'french'  => ['target' => 'fr'],
+            ],
+        ]], $container);
+
+        $definition = $container->getDefinition(ResetTranslatorsOnRequestSubscriber::class);
+        self::assertTrue($definition->hasTag('kernel.event_subscriber'));
+
+        $argument = $definition->getArgument('$translators');
+        self::assertInstanceOf(IteratorArgument::class, $argument);
+
+        $ids = [];
+        foreach ($argument->getValues() as $reference) {
+            self::assertInstanceOf(Reference::class, $reference);
+            self::assertSame(ContainerInterface::IGNORE_ON_UNINITIALIZED_REFERENCE, $reference->getInvalidBehavior());
+            $ids[] = (string) $reference;
+        }
+        self::assertSame([
+            'nowo_google_translate_php.translator.default',
+            'nowo_google_translate_php.translator.french',
+        ], $ids);
+
+        $defaultArgs = $container->getDefinition('nowo_google_translate_php.translator.default')->getArguments();
+        self::assertNull($defaultArgs['$url']);
+        self::assertSame('gtx', $defaultArgs['$client']);
     }
 
     public function testUnknownDefaultProfileThrows(): void

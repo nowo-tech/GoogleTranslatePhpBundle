@@ -20,7 +20,7 @@ The bundle uses **named profiles** (Nowo REQ-CFG-001):
 
 If `default_profile` is missing from `profiles`, compilation fails with `UnknownProfileException`.
 
-Each profile is registered as `nowo_google_translate_php.translator.<name>` and tagged with `kernel.reset`.
+Each profile is registered as `nowo_google_translate_php.translator.<name>` and tagged with `kernel.reset`. Independently of `services_resetter`, already-instantiated profiles are also reset on each main HTTP request (see [USAGE.md](USAGE.md) / [FRANKENPHP-WORKER-AUDIT.md](FRANKENPHP-WORKER-AUDIT.md)).
 
 ## Profile options
 

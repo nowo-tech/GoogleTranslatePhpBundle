@@ -2,7 +2,7 @@
 
 **Baseline spec**: [`spec.md`](spec.md)  
 **Package**: `nowo-tech/google-translate-php-bundle`  
-**Last audited**: 2026-07-28
+**Last audited**: 2026-09-24
 
 100% inventory of production artifacts under `src/`. Every file maps to at least one semantic `FR-*` in the baseline product spec (no `FR-SRC-*` placeholders).
 
@@ -12,12 +12,13 @@
 | --- | --- |
 | Bundle entry | 1 |
 | Dependency injection | 2 |
+| Event subscriber | 1 |
 | Exception | 1 |
 | Translator | 1 |
 | Resources (YAML) | 1 |
-| **Total** | **6** |
+| **Total** | **7** |
 
-Audit: `find src -type f | wc -l` → **6** (equals mapped count).
+Audit: `find src -type f | wc -l` → **7** (equals mapped count).
 
 Coverage target: **100%** lines/methods/classes under `src/` (REQ-TEST-003).
 
@@ -32,7 +33,13 @@ Coverage target: **100%** lines/methods/classes under `src/` (REQ-TEST-003).
 | Source file | Spec section | Requirement IDs |
 | --- | --- | --- |
 | `DependencyInjection/Configuration.php` | Bundle / DI | FR-CFG-001, FR-TR-004, FR-SEC-001 |
-| `DependencyInjection/GoogleTranslatePhpExtension.php` | Bundle / DI | FR-CFG-002, FR-CFG-003, FR-DI-001, FR-TR-004, FR-OBS-001 |
+| `DependencyInjection/GoogleTranslatePhpExtension.php` | Bundle / DI | FR-CFG-002, FR-CFG-003, FR-DI-001, FR-TR-004, FR-OBS-001, FR-WORKER-001 |
+
+## Event subscriber
+
+| Source file | Spec section | Requirement IDs |
+| --- | --- | --- |
+| `EventSubscriber/ResetTranslatorsOnRequestSubscriber.php` | Worker / request boundary | FR-WORKER-001 |
 
 ## Exception
 
@@ -44,7 +51,7 @@ Coverage target: **100%** lines/methods/classes under `src/` (REQ-TEST-003).
 
 | Source file | Spec section | Requirement IDs |
 | --- | --- | --- |
-| `Translator/WorkerSafeGoogleTranslate.php` | Translator / runtime | FR-TR-001, FR-TR-002, FR-TR-003, FR-TR-004, FR-OBS-001 |
+| `Translator/WorkerSafeGoogleTranslate.php` | Translator / runtime | FR-TR-001 … FR-TR-006, FR-OBS-001 |
 
 ## Resources (non-PHP)
 

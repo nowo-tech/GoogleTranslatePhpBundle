@@ -48,7 +48,9 @@ $translator->preserveParameters(true)->translate('Hello :name');
 
 ## FrankenPHP worker
 
-The service implements `ResetInterface` and is tagged `kernel.reset`. Between requests Symfony restores default target/source/`preserve_parameters` and clears `lastDetectedSource`.
+The service implements `ResetInterface` and is tagged `kernel.reset`. `reset()` restores every setting to the profile values (target, source, `preserve_parameters`, `url`, `client`, Guzzle options including timeouts, token provider) and clears `lastDetectedSource`.
+
+The bundle also calls `reset()` on every already-instantiated profile at the start of each **main** request (`ResetTranslatorsOnRequestSubscriber`, `kernel.request` priority 4096), so setter calls made in one request never reach the next one, even when `services_resetter` does not run. Setter changes are therefore scoped to the current request (sub-requests keep them). In long-running CLI processes (Messenger), keep `services_resetter` enabled or `clone` the service before changing it.
 
 ## Logging
 

@@ -4,19 +4,19 @@
 **Configuration root**: `nowo_google_translate_php`  
 **Feature Branch**: `001-baseline`  
 **Created**: 2026-07-22  
-**Last audited**: 2026-07-28  
+**Last audited**: 2026-09-24  
 **Status**: Active  
 **Inventory**: [`code-inventory.md`](code-inventory.md)
 
-**Related docs**: [`docs/SPEC-DRIVEN-DEVELOPMENT.md`](../../docs/SPEC-DRIVEN-DEVELOPMENT.md), [`docs/CONFIGURATION.md`](../../docs/CONFIGURATION.md), [`docs/USAGE.md`](../../docs/USAGE.md)
+**Related docs**: [`docs/SPEC-DRIVEN-DEVELOPMENT.md`](../../docs/SPEC-DRIVEN-DEVELOPMENT.md), [`docs/CONFIGURATION.md`](../../docs/CONFIGURATION.md), [`docs/USAGE.md`](../../docs/USAGE.md), [`docs/FRANKENPHP-WORKER-AUDIT.md`](../../docs/FRANKENPHP-WORKER-AUDIT.md)
 
 ---
 
 ## Summary
 
-Symfony bundle wrapping [`stichoza/google-translate-php`](https://github.com/Stichoza/google-translate-php) with **named profiles**, **explicit Guzzle HTTP timeouts** (REQ-RUNTIME-001), and **FrankenPHP worker** compatibility via `ResetInterface` plus a per-call placeholder counter.
+Symfony bundle wrapping [`stichoza/google-translate-php`](https://github.com/Stichoza/google-translate-php) with **named profiles**, **explicit Guzzle HTTP timeouts** (REQ-RUNTIME-001), and **FrankenPHP worker** compatibility — including when the kernel is **not** rebooted and `services_resetter` does not run between requests.
 
-Production surface under `src/`: **6** units (5 PHP + 1 YAML config).
+Production surface under `src/`: **7** units (6 PHP + 1 YAML config).
 
 ---
 
@@ -30,15 +30,18 @@ Production surface under `src/`: **6** units (5 PHP + 1 YAML config).
 | FR-CFG-001 | Config tree exposes `default_profile` and at least one named entry under `profiles` (target, source, timeouts, client, url, preserve_parameters, guzzle_options). |
 | FR-CFG-002 | Extension registers one `WorkerSafeGoogleTranslate` service per profile (`nowo_google_translate_php.translator.<name>`), aliases the default profile for autowiring, and tags each definition with `kernel.reset`. |
 | FR-CFG-003 | When `default_profile` is not a key under `profiles`, boot fails with `UnknownProfileException`. |
+| FR-WORKER-001 | Extension registers `ResetTranslatorsOnRequestSubscriber` with an iterator of profile references (`IGNORE_ON_UNINITIALIZED_REFERENCE`) so only already-instantiated translators are reset on each main `kernel.request` (priority 4096). |
 
 ### Translator / runtime
 
 | ID | Requirement |
 | --- | --- |
 | FR-TR-001 | `WorkerSafeGoogleTranslate` extends upstream `GoogleTranslate` and implements `ResetInterface`. |
-| FR-TR-002 | `reset()` restores configured target/source/`preserve_parameters` and clears `lastDetectedSource`. |
+| FR-TR-002 | `reset()` restores configured target/source/`preserve_parameters`/`url`/`client`/Guzzle options/token provider and clears `lastDetectedSource`. |
 | FR-TR-003 | `extractParameters()` uses a **per-call** placeholder counter (no leaked `static $index` across worker requests). |
 | FR-TR-004 | Each profile passes `timeout` and `connect_timeout` into Guzzle client options (no unbounded HTTP wait). |
+| FR-TR-005 | `translate()` clears `lastDetectedSource` before delegating so early returns cannot expose a previous request's detection. |
+| FR-TR-006 | Static `trans()` builds a fresh instance per call and applies default timeouts when missing. |
 | FR-OBS-001 | Outbound `translate()` logs start/success/failure with structured metadata (`bundle`, `action`, `target`, `source`, `bytes`) and never logs source text. |
 | FR-SEC-001 | Profile `url` overrides must be `https://` (or null/empty); non-HTTPS values are rejected by the config tree. |
 
@@ -70,11 +73,11 @@ Production surface under `src/`: **6** units (5 PHP + 1 YAML config).
 
 **Given** `default_profile: missing` not listed under `profiles`, **When** the extension loads, **Then** `UnknownProfileException` is thrown.
 
-### User Story 4 — Worker reset (Priority: P1)
+### User Story 4 — Worker reset via ResetInterface (Priority: P1)
 
 **US-04**
 
-**Given** a singleton translator mutated during a request, **When** `reset()` runs, **Then** target/source/`preserve_parameters` restore configured defaults and `lastDetectedSource` is null.
+**Given** a singleton translator mutated during a request, **When** `reset()` runs, **Then** all mutable settings restore configured defaults and `lastDetectedSource` is null.
 
 ### User Story 5 — HTTP timeouts (Priority: P1)
 
@@ -82,15 +85,22 @@ Production surface under `src/`: **6** units (5 PHP + 1 YAML config).
 
 **Given** profile `timeout` / `connect_timeout`, **When** Guzzle cannot complete in time, **Then** a translation request exception surfaces (no unbounded wait).
 
+### User Story 6 — Worker without services_resetter (Priority: P1)
+
+**US-06**
+
+**Given** FrankenPHP worker with the same container across requests and **no** `services_resetter`, **When** request A mutates the shared translator and request B starts (main `kernel.request`), **Then** request B sees profile defaults (subscriber reset), not request A's setters.
+
 ---
 
 ## Success criteria
 
 | ID | Criterion |
 | --- | --- |
-| SC-01 | Inventory maps **6/6** production units under `src/` to semantic `FR-*` IDs (no `FR-SRC-*`). |
+| SC-01 | Inventory maps **7/7** production units under `src/` to semantic `FR-*` IDs (no `FR-SRC-*`). |
 | SC-02 | PHPUnit line coverage on `src/` is **100%** (`make test-coverage` / `composer coverage-check`). |
 | SC-03 | PHPStan with FrankenPHP classic + worker rulesets exits **0**. |
+| SC-04 | `WorkerModeWithoutResetTest` proves consecutive main requests without framework `reset()` restore defaults. |
 
 ---
 
@@ -117,6 +127,7 @@ composer coverage-check
 | --- | --- |
 | FR-BUNDLE-001 | `tests/Unit/GoogleTranslatePhpBundleTest.php` |
 | FR-CFG-001 | `tests/Unit/DependencyInjection/ConfigurationTest.php` |
-| FR-CFG-002, FR-CFG-003, FR-DI-001 | `tests/Unit/DependencyInjection/GoogleTranslatePhpExtensionTest.php` |
-| FR-TR-001 … FR-TR-004 | `tests/Unit/Translator/WorkerSafeGoogleTranslateTest.php` |
+| FR-CFG-002, FR-CFG-003, FR-DI-001, FR-WORKER-001 | `tests/Unit/DependencyInjection/GoogleTranslatePhpExtensionTest.php` |
+| FR-TR-001 … FR-TR-006, FR-OBS-001 | `tests/Unit/Translator/WorkerSafeGoogleTranslateTest.php` |
+| FR-WORKER-001, US-06 | `tests/Unit/Translator/WorkerModeWithoutResetTest.php` |
 | FR-CFG-003 | `tests/Unit/Exception/UnknownProfileExceptionTest.php` |

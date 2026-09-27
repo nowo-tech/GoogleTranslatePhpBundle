@@ -19,6 +19,7 @@ final class GoogleTranslatePhpBundle extends Bundle
     public function getContainerExtension(): ExtensionInterface
     {
         if (!$this->extension instanceof GoogleTranslatePhpExtension) {
+            // @igor-ignore - Symfony bundle extension lazy-init at boot; not request state
             $this->extension = new GoogleTranslatePhpExtension();
         }
 

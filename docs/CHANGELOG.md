@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.1.0] - 2026-09-28](#110---2026-09-28)
 - [[1.0.8] - 2026-09-27](#108---2026-09-27)
 - [[1.0.7] - 2026-09-24](#107---2026-09-24)
 - [[1.0.6] - 2026-09-07](#106---2026-09-07)
@@ -18,6 +19,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-09-28
+
+### Security
+
+- Profile `url` hosts must be in `url_host_allowlist` (defaults: translate.google.com / .cn / translate.googleapis.com); other HTTPS hosts are rejected.
+
 ## [1.0.8] - 2026-09-27
 
 ### Added
@@ -28,6 +35,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - **Worker safety (Igor):** justified `// @igor-ignore` annotations and/or `ResetInterface` / request-scoped fixes so `make igor` passes on package `src/`.
 
+[1.1.0]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/releases/tag/v1.1.0
 [1.0.8]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/releases/tag/v1.0.8
 
 ## [1.0.7] - 2026-09-24

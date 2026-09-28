@@ -24,6 +24,10 @@ final class ConfigurationTest extends TestCase
         self::assertSame('gtx', $config['profiles']['default']['client']);
         self::assertFalse($config['profiles']['default']['preserve_parameters']);
         self::assertSame([], $config['profiles']['default']['guzzle_options']);
+        self::assertSame(
+            ['translate.google.com', 'translate.googleapis.com', 'translate.google.cn'],
+            $config['url_host_allowlist'],
+        );
     }
 
     public function testCustomProfileTimeouts(): void
@@ -87,6 +91,34 @@ final class ConfigurationTest extends TestCase
         );
     }
 
+    public function testHttpsNonAllowlistedHostRejected(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('url_host_allowlist');
+
+        (new Processor())->processConfiguration(new Configuration(), [[
+            'profiles' => [
+                'default' => [
+                    'url' => 'https://evil.example/translate',
+                ],
+            ],
+        ]]);
+    }
+
+    public function testCustomAllowlistAcceptsHost(): void
+    {
+        $config = (new Processor())->processConfiguration(new Configuration(), [[
+            'url_host_allowlist' => ['translate.custom.example'],
+            'profiles'           => [
+                'default' => [
+                    'url' => 'https://translate.custom.example/v1',
+                ],
+            ],
+        ]]);
+
+        self::assertSame('https://translate.custom.example/v1', $config['profiles']['default']['url']);
+    }
+
     public function testUrlWithWhitespaceRejected(): void
     {
         $this->expectException(InvalidConfigurationException::class);
@@ -94,7 +126,7 @@ final class ConfigurationTest extends TestCase
         (new Processor())->processConfiguration(new Configuration(), [[
             'profiles' => [
                 'default' => [
-                    'url' => "https://example.com/translate\n",
+                    'url' => "https://translate.google.com/translate\n",
                 ],
             ],
         ]]);

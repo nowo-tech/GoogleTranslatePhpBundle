@@ -3,6 +3,17 @@
 
 ## Unreleased
 
+## To 1.1.0
+
+From **1.0.8** — `url_host_allowlist`.
+
+```bash
+composer update nowo-tech/google-translate-php-bundle
+php bin/console cache:clear
+```
+
+- Custom profile `url` hosts must be listed in `url_host_allowlist` (or leave `url` null for the upstream default).
+
 ## To 1.0.8
 
 From **1.0.7** — REQ-CS-008 Igor FrankenPHP worker audit (igor-php require-dev, igor.json, make igor).

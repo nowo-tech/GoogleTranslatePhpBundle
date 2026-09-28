@@ -21,7 +21,7 @@ Also see [`.github/SECURITY.md`](../.github/SECURITY.md).
 | Unofficial Google Translate scraping may break or rate-limit | Documented disclaimer; prefer official APIs for production |
 | Hung outbound HTTP under FrankenPHP worker | Profile `timeout` + `connect_timeout` (REQ-RUNTIME-001) |
 | Mutable translator state across worker requests | `ResetInterface` / `kernel.reset` **and** `ResetTranslatorsOnRequestSubscriber` on each main request (safe without `services_resetter`) |
-| SSRF via profile `url` override | Config tree allows only `https://` URLs (or null/empty default) |
+| SSRF via profile `url` override | Config tree allows only `https://` URLs whose host is in `url_host_allowlist` (defaults: translate.google.com / .cn / translate.googleapis.com), or null/empty for the upstream default |
 | Secrets in config | No API keys required by upstream; do not commit `.env` secrets |
 | PII in logs | Outbound translate logs metadata only (target/source/byte length); never source text |
 
@@ -54,7 +54,7 @@ Before tagging a release, confirm:
 | **Cryptography** | N/A (no crypto primitives in this bundle). |
 | **Permissions / exposure** | No public HTTP routes shipped by the bundle. |
 | **Limits / DoS** | Profile timeouts documented; avoid unbounded payload sizes in host app. |
-| **REQ-SEC-004 (AI audit)** | Pass (conditional) — Medium residual (unofficial scrape; HTTPS `url` host trust). Recorded in the Nowo org security matrix (AI audit 2026-07-28; remediation 2026-07-29). |
+| **REQ-SEC-004 (AI audit)** | Pass (good) — re-audit **2026-09-28**; HTTPS + host allowlist; residual ToS/unofficial scrape is product risk, not SSRF |
 | **Release notes** | Security-relevant changes reflected in `CHANGELOG.md` / `UPGRADING.md` when needed. |
 
 Recommended commands:

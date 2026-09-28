@@ -6,11 +6,19 @@ namespace Nowo\GoogleTranslatePhpBundle\DependencyInjection;
 
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 
+use function array_map;
+use function in_array;
 use function is_bool;
 use function is_string;
+use function parse_url;
 use function preg_match;
+use function sprintf;
 use function str_starts_with;
+use function strtolower;
+
+use const PHP_URL_HOST;
 
 /**
  * Configuration tree for nowo_google_translate_php (named profiles).
@@ -20,6 +28,13 @@ use function str_starts_with;
  */
 final class Configuration implements ConfigurationInterface
 {
+    /** @var list<string> */
+    public const DEFAULT_URL_HOST_ALLOWLIST = [
+        'translate.google.com',
+        'translate.googleapis.com',
+        'translate.google.cn',
+    ];
+
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('nowo_google_translate_php');
@@ -31,6 +46,11 @@ final class Configuration implements ConfigurationInterface
                     ->info('Name of the profile used when no profile is requested')
                     ->defaultValue('default')
                     ->cannotBeEmpty()
+                ->end()
+                ->arrayNode('url_host_allowlist')
+                    ->info('Allowed hosts for profiles.*.url (HTTPS only). Empty url uses the upstream default host.')
+                    ->scalarPrototype()->end()
+                    ->defaultValue(self::DEFAULT_URL_HOST_ALLOWLIST)
                 ->end()
                 ->arrayNode('profiles')
                     ->info('Named translator profiles (target, timeouts, Guzzle options, …)')
@@ -107,6 +127,30 @@ final class Configuration implements ConfigurationInterface
                         ],
                     ])
                 ->end()
+            ->end()
+            ->validate()
+            ->always(static function (array $v): array {
+                /** @var list<string> $allowlist */
+                $allowlist = array_map(static fn (string $h): string => strtolower($h), $v['url_host_allowlist'] ?? []);
+
+                foreach ($v['profiles'] as $name => $profile) {
+                    $url = $profile['url'] ?? null;
+                    if ($url === null || $url === '') {
+                        continue;
+                    }
+
+                    $host = parse_url((string) $url, PHP_URL_HOST);
+                    if (!is_string($host) || $host === '' || !in_array(strtolower($host), $allowlist, true)) {
+                        throw new InvalidConfigurationException(sprintf(
+                            'nowo_google_translate_php.profiles.%s.url host "%s" is not in url_host_allowlist.',
+                            $name,
+                            is_string($host) ? $host : '',
+                        ));
+                    }
+                }
+
+                return $v;
+            })
             ->end();
 
         return $treeBuilder;

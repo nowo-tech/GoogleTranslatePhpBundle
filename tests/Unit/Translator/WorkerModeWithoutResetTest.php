@@ -51,12 +51,14 @@ final class WorkerModeWithoutResetTest extends TestCase
 
         // A sub-request (fragment / ESI) keeps the main request's settings.
         $subscriber->onKernelRequest($this->requestEvent(HttpKernelInterface::SUB_REQUEST));
-        self::assertSame('fr', $this->state($translator)['target']);
+        $subRequestState = $this->state($translator);
+        self::assertSame('fr', $subRequestState['target']);
 
         // Request 2 (tenant B): no reset() call from the framework.
         $subscriber->onKernelRequest($this->requestEvent(HttpKernelInterface::MAIN_REQUEST));
 
-        self::assertSame($defaults, $this->state($translator));
+        $nextRequestState = $this->state($translator);
+        self::assertSame($defaults, $nextRequestState);
         self::assertSame('en', $defaults['target']);
         self::assertSame('auto', $defaults['source']);
         self::assertNull($defaults['pattern']);

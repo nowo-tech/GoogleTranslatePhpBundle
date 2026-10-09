@@ -3,6 +3,14 @@
 
 ## Unreleased
 
+## To 1.1.1
+
+From **1.1.0** — dependency refresh, test/style fixes. No breaking changes. No application upgrade steps.
+
+```bash
+composer update nowo-tech/google-translate-php-bundle
+```
+
 ## To 1.1.0
 
 From **1.0.8** — `url_host_allowlist`.
@@ -27,6 +35,9 @@ php bin/console cache:clear
 
 ## Table of contents
 
+- [To 1.1.1](#to-111)
+- [To 1.1.0](#to-110)
+- [To 1.0.8](#to-108)
 - [From 1.0.6 to 1.0.7](#from-106-to-107)
 - [From 1.0.5 to 1.0.6](#from-105-to-106)
 - [From 1.0.4 to 1.0.5](#from-104-to-105)

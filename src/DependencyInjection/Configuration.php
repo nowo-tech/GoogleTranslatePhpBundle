@@ -141,11 +141,7 @@ final class Configuration implements ConfigurationInterface
 
                     $host = parse_url((string) $url, PHP_URL_HOST);
                     if (!is_string($host) || $host === '' || !in_array(strtolower($host), $allowlist, true)) {
-                        throw new InvalidConfigurationException(sprintf(
-                            'nowo_google_translate_php.profiles.%s.url host "%s" is not in url_host_allowlist.',
-                            $name,
-                            is_string($host) ? $host : '',
-                        ));
+                        throw new InvalidConfigurationException(sprintf('nowo_google_translate_php.profiles.%s.url host "%s" is not in url_host_allowlist.', $name, is_string($host) ? $host : ''));
                     }
                 }
 

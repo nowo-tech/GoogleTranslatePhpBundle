@@ -1,5 +1,26 @@
 # Upgrading
 
+## Table of contents
+
+- [Unreleased](#unreleased)
+- [To 1.2.0](#to-120)
+- [To 1.1.2](#to-112)
+- [To 1.1.1](#to-111)
+- [To 1.1.0](#to-110)
+- [To 1.0.8](#to-108)
+- [From 1.0.6 to 1.0.7](#from-106-to-107)
+- [From 1.0.5 to 1.0.6](#from-105-to-106)
+- [From 1.0.4 to 1.0.5](#from-104-to-105)
+- [1.0.4 (2026-08-20)](#104-2026-08-20)
+- [1.0.3 (2026-08-19)](#103-2026-08-19)
+- [1.0.2](#102)
+- [1.0.1](#101)
+- [1.0.0](#100)
+  - [Install](#install)
+  - [Configuration to review](#configuration-to-review)
+  - [Integrators coming from raw `stichoza/google-translate-php`](#integrators-coming-from-raw-stichozagoogle-translate-php)
+  - [General upgrade checklist (future minors)](#general-upgrade-checklist-future-minors)
+
 ## Unreleased
 
 ## To 1.2.0
@@ -51,22 +72,6 @@ php bin/console cache:clear
 ```
 
 - No application upgrade steps for require-dev Igor tooling (REQ-CS-008). Consumers do not pull `igor-php/igor-php` transitively.
-
-## Table of contents
-
-- [To 1.2.0](#to-120)
-- [To 1.1.2](#to-112)
-- [To 1.1.1](#to-111)
-- [To 1.1.0](#to-110)
-- [To 1.0.8](#to-108)
-- [From 1.0.6 to 1.0.7](#from-106-to-107)
-- [From 1.0.5 to 1.0.6](#from-105-to-106)
-- [From 1.0.4 to 1.0.5](#from-104-to-105)
-- [1.0.4 (2026-08-20)](#104-2026-08-20)
-- [1.0.3 (2026-08-19)](#103-2026-08-19)
-- [1.0.2](#102)
-- [1.0.1](#101)
-- [1.0.0](#100)
 
 ## From 1.0.6 to 1.0.7
 

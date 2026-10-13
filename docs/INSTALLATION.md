@@ -3,7 +3,7 @@
 ## Requirements
 
 - PHP >= 8.1, < 8.6
-- Symfony 6.0+ / 7.4+ / 8.0 / 8.1 (see root `composer.json`)
+- Symfony 6.4 / 7.4 / 8.0 / 8.1 (see root `composer.json`)
 - Composer 2
 
 ## Composer

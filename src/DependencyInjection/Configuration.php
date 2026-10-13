@@ -107,7 +107,7 @@ final class Configuration implements ConfigurationInterface
                                 ->end()
                             ->end()
                             ->arrayNode('guzzle_options')
-                                ->info('Extra Guzzle options merged after timeout/connect_timeout')
+                                ->info('Extra Guzzle options for this profile; the profile timeout/connect_timeout always win over the same keys set here')
                                 ->normalizeKeys(false)
                                 ->variablePrototype()->end()
                                 ->defaultValue([])

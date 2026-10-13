@@ -21,6 +21,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- `guzzle_options` config info text: the profile `timeout` / `connect_timeout` always win over the same keys in `guzzle_options` (the old text said the reverse).
+
+### Changed
+
+- Symfony constraints raised from `^6.0 || ^7.0 || ^8.0` to `^6.4 || ^7.4 || ^8.0` so the lowest allowed versions are the ones CI tests; dropped the redundant `7.0` CI cell (it resolved to 7.4). README / INSTALLATION / badge aligned.
+
 ## [1.1.2] - 2026-10-13
 
 ### Changed

@@ -74,6 +74,26 @@ final class GoogleTranslatePhpExtensionTest extends TestCase
         self::assertSame([], $definition->getMethodCalls());
     }
 
+    public function testProfileTimeoutsWinOverGuzzleOptions(): void
+    {
+        $container = new ContainerBuilder();
+        (new GoogleTranslatePhpExtension())->load([[
+            'profiles' => [
+                'default' => [
+                    'timeout'         => 3.0,
+                    'connect_timeout' => 1.0,
+                    'guzzle_options'  => ['timeout' => 99, 'connect_timeout' => 99, 'verify' => false],
+                ],
+            ],
+        ]], $container);
+
+        $options = $container->getDefinition('nowo_google_translate_php.translator.default')->getArgument('$options');
+
+        self::assertEqualsWithDelta(3.0, $options['timeout'], 0.001);
+        self::assertEqualsWithDelta(1.0, $options['connect_timeout'], 0.001);
+        self::assertFalse($options['verify']);
+    }
+
     public function testRegistersRequestResetSubscriberForAllProfilesWithoutInstantiatingThem(): void
     {
         $container = new ContainerBuilder();

@@ -3,6 +3,7 @@
 ## Table of contents
 
 - [Unreleased](#unreleased)
+- [To 1.2.1](#to-121)
 - [To 1.2.0](#to-120)
 - [To 1.1.2](#to-112)
 - [To 1.1.1](#to-111)
@@ -22,6 +23,16 @@
   - [General upgrade checklist (future minors)](#general-upgrade-checklist-future-minors)
 
 ## Unreleased
+
+## To 1.2.1
+
+From **1.2.0** — documented PHP requirement matches composer.json
+
+```bash
+composer update nowo-tech/google-translate-php-bundle
+```
+
+- No breaking changes. No application upgrade steps.
 
 ## To 1.2.0
 

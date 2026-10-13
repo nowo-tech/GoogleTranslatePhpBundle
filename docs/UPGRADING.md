@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## To 1.2.0
+
+From **1.1.2** — guzzle_options precedence documented; Symfony floors 6.4/7.4.
+
+```bash
+composer update nowo-tech/google-translate-php-bundle
+```
+
 - Requires Symfony 6.4, 7.4 or 8.x (previously 6.0+ / 7.0+ were allowed but untested). Upgrade Symfony first if you are on 6.0–6.3 or 7.0–7.3.
 
 ## To 1.1.2
@@ -46,6 +54,7 @@ php bin/console cache:clear
 
 ## Table of contents
 
+- [To 1.2.0](#to-120)
 - [To 1.1.2](#to-112)
 - [To 1.1.1](#to-111)
 - [To 1.1.0](#to-110)

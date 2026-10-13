@@ -23,6 +23,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- `docs/INSTALLATION.md`: PHP requirement corrected to `>= 8.2, < 8.6` (matches `composer.json`; it still said 8.1).
+
 ## [1.2.0] - 2026-10-13
 
 ### Fixed

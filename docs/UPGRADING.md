@@ -1,7 +1,16 @@
 # Upgrading
 
-
 ## Unreleased
+
+## To 1.1.2
+
+From **1.1.1** — dependency refresh and repository maintenance.
+
+```bash
+composer update nowo-tech/google-translate-php-bundle
+```
+
+- No breaking changes. No application upgrade steps.
 
 ## To 1.1.1
 
@@ -35,6 +44,7 @@ php bin/console cache:clear
 
 ## Table of contents
 
+- [To 1.1.2](#to-112)
 - [To 1.1.1](#to-111)
 - [To 1.1.0](#to-110)
 - [To 1.0.8](#to-108)

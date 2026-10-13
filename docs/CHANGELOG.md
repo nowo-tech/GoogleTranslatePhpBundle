@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.1.2] - 2026-10-13](#112---2026-10-13)
 - [[1.1.1] - 2026-10-09](#111---2026-10-09)
 - [[1.1.0] - 2026-09-28](#110---2026-09-28)
 - [[1.0.8] - 2026-09-27](#108---2026-09-27)
@@ -19,6 +20,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [[1.0.0] - 2026-07-28](#100---2026-07-28)
 
 ## [Unreleased]
+
+## [1.1.2] - 2026-10-13
 
 ### Changed
 
@@ -52,6 +55,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - **Worker safety (Igor):** justified `// @igor-ignore` annotations and/or `ResetInterface` / request-scoped fixes so `make igor` passes on package `src/`.
 
+[1.1.2]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/releases/tag/v1.1.2
 [1.1.1]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/releases/tag/v1.1.1
 [1.1.0]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/releases/tag/v1.1.0
 [1.0.8]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/releases/tag/v1.0.8

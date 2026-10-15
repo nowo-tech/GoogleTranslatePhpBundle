@@ -19,3 +19,7 @@
 
 - `docs/ENGRAM.md`, `docs/CONFIGURATION.md`, `docs/USAGE.md`
 - `specs/001-baseline/`
+
+## Commits
+
+- Never add AI co-author trailers: no `Co-authored-by: Cursor` / `cursoragent@cursor.com`, no `Co-Authored-By: Claude …` / `noreply@anthropic.com` (REQ-GIT-001).

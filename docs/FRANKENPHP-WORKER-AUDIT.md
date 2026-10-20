@@ -9,6 +9,18 @@
 | Remediation (2026-09-23/24) | W-01 fixed (bundle-owned `kernel.request` subscriber resets instantiated profiles on every main request; `translate()` clears `lastDetectedSource`); W-02 fixed (`reset()` restores URL, client, options, token provider; URL/client moved to constructor args); `trans()` gets default timeouts; regression tests simulate consecutive requests on the same container without `reset()` |
 | **Verdict** | ✅ **Viable under scenario B** — every main request starts from the profile defaults whether or not `services_resetter` runs; setter changes are scoped to the current request |
 
+## Table of contents
+
+- [Execution model assumed](#execution-model-assumed)
+- [Summary](#summary)
+- [Services reviewed](#services-reviewed)
+- [Findings](#findings)
+  - [W-01 — Per-call settings and `lastDetectedSource` survive when nothing is reset (Medium)](#w-01--per-call-settings-and-lastdetectedsource-survive-when-nothing-is-reset-medium)
+  - [W-02 — `reset()` does not restore URL, client, Guzzle options or token provider (Low)](#w-02--reset-does-not-restore-url-client-guzzle-options-or-token-provider-low)
+  - [W-03 — Long-lived Guzzle client (Info)](#w-03--long-lived-guzzle-client-info)
+- [Usage recommendations in worker mode](#usage-recommendations-in-worker-mode)
+- [Re-audit triggers](#re-audit-triggers)
+
 ## Execution model assumed
 
 FrankenPHP worker mode boots the Symfony kernel once per worker and serves many requests with the same container. This audit assumes the **strict** variant: the kernel is **not** rebooted between requests, so every shared service, static property and PHP global survives from one request to the next. Two scenarios are evaluated:

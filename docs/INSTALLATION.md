@@ -1,5 +1,11 @@
 # Installation
 
+## Table of contents
+
+- [Requirements](#requirements)
+- [Composer](#composer)
+- [Verify](#verify)
+
 ## Requirements
 
 - PHP >= 8.2, < 8.6

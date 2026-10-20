@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.2.2] - 2026-10-20](#122---2026-10-20)
 - [[1.2.1] - 2026-10-13](#121---2026-10-13)
 - [[1.2.0] - 2026-10-13](#120---2026-10-13)
 - [[1.1.2] - 2026-10-13](#112---2026-10-13)
@@ -23,6 +24,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [[1.0.0] - 2026-07-28](#100---2026-07-28)
 
 ## [Unreleased]
+
+## [1.2.2] - 2026-10-20
+
+Documentation: wave-1 REQ compliance (README, CONTRIBUTING, issue templates, TOCs). See [UPGRADING](UPGRADING.md#to-122).
 
 ### Changed
 
@@ -78,6 +83,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - **Worker safety (Igor):** justified `// @igor-ignore` annotations and/or `ResetInterface` / request-scoped fixes so `make igor` passes on package `src/`.
 
+[1.2.2]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/releases/tag/v1.2.2
 [1.2.1]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/releases/tag/v1.2.1
 [1.2.0]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/releases/tag/v1.2.0
 [1.1.2]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/releases/tag/v1.1.2
@@ -192,7 +198,7 @@ First public release of `nowo-tech/google-translate-php-bundle`.
 - Threat model and 12.4.1 release checklist in [SECURITY.md](SECURITY.md).
 - REQ-SEC-004 Pass (conditional): residual risk from unofficial Google scrape and trusted HTTPS URL hosts — see monorepo security analysis.
 
-[Unreleased]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/compare/v1.0.7...HEAD
+[Unreleased]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/compare/v1.2.2...HEAD
 [1.0.7]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/releases/tag/v1.0.7
 [1.0.6]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/releases/tag/v1.0.6
 [1.0.5]: https://github.com/nowo-tech/GoogleTranslatePhpBundle/releases/tag/v1.0.5

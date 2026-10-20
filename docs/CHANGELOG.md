@@ -25,6 +25,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- Dependencies refreshed (Composer and pnpm/npm lock files of the bundle and its demos, campaign 2026-10-19).
+- `.php-cs-fixer.dist.php`: `new ParallelConfig(2)` (REQ-CS-001).
+
 ## [1.2.2] - 2026-10-20
 
 Documentation: wave-1 REQ compliance (README, CONTRIBUTING, issue templates, TOCs). See [UPGRADING](UPGRADING.md#to-122).

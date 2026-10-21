@@ -106,6 +106,9 @@ final class GoogleTranslatePhpExtension extends Extension
         return $serviceId;
     }
 
+    /**
+     * Returns the configuration alias.
+     */
     public function getAlias(): string
     {
         return 'nowo_google_translate_php';

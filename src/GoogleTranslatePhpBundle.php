@@ -16,6 +16,9 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
  */
 final class GoogleTranslatePhpBundle extends Bundle
 {
+    /**
+     * Returns the bundle extension.
+     */
     public function getContainerExtension(): ExtensionInterface
     {
         if (!$this->extension instanceof GoogleTranslatePhpExtension) {

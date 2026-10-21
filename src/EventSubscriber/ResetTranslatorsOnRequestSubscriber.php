@@ -29,11 +29,17 @@ final readonly class ResetTranslatorsOnRequestSubscriber implements EventSubscri
     ) {
     }
 
+    /**
+     * Subscribes to kernel.request with a high priority.
+     */
     public static function getSubscribedEvents(): array
     {
         return [KernelEvents::REQUEST => ['onKernelRequest', 4096]];
     }
 
+    /**
+     * Resets every profile translator at the start of each main request (FrankenPHP worker safety).
+     */
     public function onKernelRequest(RequestEvent $event): void
     {
         if (!$event->isMainRequest()) {

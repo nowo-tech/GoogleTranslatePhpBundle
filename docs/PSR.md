@@ -26,7 +26,7 @@ Others are **N/A** (or already covered by Symfony) so the decision stays auditab
 | PSR-3 Logger | **Adopted** | Type-hint `Psr\Log\LoggerInterface` on services that log; injectable via Symfony DI. |
 | PSR-6 / PSR-16 Cache | **N/A** | No package-owned cache layer. |
 | PSR-7 / PSR-17 HTTP messages | **N/A** | Symfony HttpFoundation (or no HTTP messages API) is the correct surface; a PSR-7 bridge would not help consumers. |
-| PSR-18 HTTP client | **N/A** | No outbound HTTP client. |
+| PSR-18 HTTP client | **N/A (justified)** | The bundle does call Google Translate over HTTP, but through `stichoza/google-translate-php`, which is built on Guzzle and exposes no PSR-18 injection point; timeouts are applied through the Guzzle `timeout` / `connect_timeout` options per profile (REQ-RUNTIME-001). |
 | PSR-11 Container | **N/A** | No container locator in the public API; constructor injection only. |
 | PSR-14 Event dispatcher | **N/A** | No domain event extension points that need a dispatcher SPI. |
 | PSR-15 HTTP middleware | **N/A** | Uses Symfony kernel listeners/subscribers (or has no HTTP middleware pipeline). |

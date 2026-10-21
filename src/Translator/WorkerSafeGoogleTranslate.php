@@ -85,6 +85,9 @@ final class WorkerSafeGoogleTranslate extends GoogleTranslate implements ResetIn
         $this->defaultTokenProvider = $this->tokenProvider;
     }
 
+    /**
+     * Restores the configured profile state (target, source, URL, client, options, token provider) and clears the last detected source.
+     */
     public function reset(): void
     {
         $this->lastDetectedSource = null;
@@ -114,6 +117,9 @@ final class WorkerSafeGoogleTranslate extends GoogleTranslate implements ResetIn
         return parent::trans($string, $target, $source, $options + self::DEFAULT_TRANS_OPTIONS, $tokenProvider, $preserveParameters);
     }
 
+    /**
+     * Translates the string with the profile settings, logging start / failure without the text; null when Google returns no translation.
+     */
     public function translate(string $string): ?string
     {
         // Upstream returns early (same source/target, empty response) without touching it.

@@ -27,6 +27,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Changed
 
+- PHPDoc description on every public method of `src/` (REQ-CS-001).
+- Rector targets PHP 8.2 (package floor) with at most 2 workers (REQ-CS-003, REQ-SF-001).
+- CI: the code-style job also runs PHPStan and Igor, on pushes as well as pull requests (REQ-CS-005/006/008).
+- `release-check` starts with `ensure-up` and runs the new `check-no-raw-html-form` gate (REQ-MAKE-002).
+- Demo: the translate form is a Symfony Form (`TranslateFormType`, `symfony/form` added) instead of raw `<form>` / `<textarea>` (REQ-DEMO-001, REQ-TWIG-005); Caddyfiles and `php-dev.ini` set PHP `max_execution_time` 20 s, Caddy write 30 s and FrankenPHP `max_wait_time` 30 s above the 10 s translate timeout (REQ-RUNTIME-001).
+- `docs/PSR.md`: PSR-18 rationale corrected (the bundle calls Google over Guzzle through the upstream library, which has no PSR-18 seam) (REQ-CS-007).
+- `.scripts/check-no-cursor-coauthor.sh` accepts git worktrees (REQ-GIT-001); the generated demo `config/reference.php` is excluded from PHP-CS-Fixer; pending Rector finding applied.
+
 - Dependencies refreshed (Composer and pnpm/npm lock files of the bundle and its demos, campaign 2026-10-19).
 - `.php-cs-fixer.dist.php`: `new ParallelConfig(2)` (REQ-CS-001).
 

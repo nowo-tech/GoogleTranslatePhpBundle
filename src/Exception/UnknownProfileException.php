@@ -16,6 +16,9 @@ use function sprintf;
  */
 final class UnknownProfileException extends InvalidArgumentException
 {
+    /**
+     * Creates the exception for a profile name that is not configured.
+     */
     public static function forProfile(string $profile): self
     {
         return new self(sprintf('The profile "%s" is not defined in nowo_google_translate_php.profiles.', $profile));

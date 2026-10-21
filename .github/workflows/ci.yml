@@ -101,9 +101,8 @@ jobs:
         run: composer test-coverage
 
   cs-check:
-    name: Code Style Check
+    name: Code style, PHPStan, Igor
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
 
     steps:
       - name: Checkout code
@@ -120,3 +119,9 @@ jobs:
 
       - name: Check code style
         run: composer cs-check
+
+      - name: PHPStan (REQ-CS-005 / REQ-CS-006)
+        run: composer phpstan
+
+      - name: Igor worker-state audit (REQ-CS-008)
+        run: composer igor

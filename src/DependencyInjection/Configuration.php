@@ -35,6 +35,9 @@ final class Configuration implements ConfigurationInterface
         'translate.google.cn',
     ];
 
+    /**
+     * Builds the nowo_google_translate_php configuration tree (profiles with target/source, URL, client and HTTP timeouts).
+     */
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('nowo_google_translate_php');

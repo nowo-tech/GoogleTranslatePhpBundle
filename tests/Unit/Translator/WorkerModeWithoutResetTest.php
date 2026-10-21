@@ -120,7 +120,7 @@ final class WorkerModeWithoutResetTest extends TestCase
         (new GoogleTranslatePhpExtension())->load([['profiles' => ['default' => $profile]]], $container);
         $container->getDefinition(self::ID)->setPublic(true);
         $container->getDefinition(ResetTranslatorsOnRequestSubscriber::class)->setPublic(true);
-        $container->compile();
+        $container->compile(true);
 
         return $container;
     }

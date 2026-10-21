@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Form\TranslateFormType;
 use Nowo\GoogleTranslatePhpBundle\Translator\WorkerSafeGoogleTranslate;
 use Stichoza\GoogleTranslate\Exceptions\RateLimitException;
 use Stichoza\GoogleTranslate\Exceptions\TranslationRequestException;
@@ -23,12 +24,18 @@ final class DemoController extends AbstractController
     #[Route('/', name: 'demo_home', methods: ['GET', 'POST'])]
     public function home(Request $request): Response
     {
-        $input      = trim((string) $request->request->get('text', 'Hello world'));
+        $form = $this->createForm(TranslateFormType::class, ['text' => 'Hello world'], [
+            'action' => $this->generateUrl('demo_home'),
+        ]);
+        $form->handleRequest($request);
+        /** @var array{text?: string|null} $data */
+        $data       = $form->getData();
+        $input      = trim((string) ($data['text'] ?? ''));
         $translated = null;
         $error      = null;
         $detected   = null;
 
-        if ($request->isMethod('POST') && $input !== '') {
+        if ($form->isSubmitted() && $form->isValid() && $input !== '') {
             try {
                 $translated = $this->translator->translate($input);
                 $detected   = $this->translator->getLastDetectedSource();
@@ -42,6 +49,7 @@ final class DemoController extends AbstractController
         }
 
         return $this->render('demo/home.html.twig', [
+            'form'            => $form,
             'version_badge'   => 'Symfony 8.1',
             'input'           => $input,
             'translated'      => $translated,

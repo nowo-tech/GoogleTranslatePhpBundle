@@ -12,11 +12,14 @@
         <code>connect_timeout={{ connect_timeout }}s</code>
     </p>
 
-    <form method="post" action="{{ path('demo_home') }}">
-        <label for="text">Text to translate (auto-detect → Spanish)</label>
-        <textarea id="text" name="text" rows="4" cols="60">{{ input }}</textarea>
+    {{ form_start(form) }}
+        {% for child in form %}
+            {% if not child.rendered %}
+                {{ form_row(child) }}
+            {% endif %}
+        {% endfor %}
         <p><button type="submit">Translate</button></p>
-    </form>
+    {{ form_end(form) }}
 
     {% if error %}
         <p class="error"><strong>Error:</strong> {{ error }}</p>

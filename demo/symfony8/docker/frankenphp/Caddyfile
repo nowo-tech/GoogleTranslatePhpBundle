@@ -1,6 +1,18 @@
 {
 	order mercure after encode
 	skip_install_trust
+	# REQ-RUNTIME-001 timeout hierarchy: Google Translate call (profile timeout 10s, connect 5s)
+	# < PHP max_execution_time 20s < Caddy write 30s; max_wait_time caps the wait for a free PHP thread.
+	servers {
+		timeouts {
+			write 30s
+		}
+	}
+	frankenphp {
+		php_ini max_execution_time 20
+		php_ini max_input_time 20
+		max_wait_time 30s
+	}
 }
 
 :80 {

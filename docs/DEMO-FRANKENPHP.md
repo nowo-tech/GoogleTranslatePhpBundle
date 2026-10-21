@@ -36,7 +36,7 @@ In addition, `ResetTranslatorsOnRequestSubscriber` calls `reset()` at the start 
 
 ## Timeouts (REQ-RUNTIME-001)
 
-Demo profile defaults: `timeout: 10`, `connect_timeout: 5`. Keep PHP `max_execution_time` and Caddy write timeouts **greater** than the profile timeout. Documented in [CONFIGURATION.md](CONFIGURATION.md).
+Demo profile defaults: `timeout: 10`, `connect_timeout: 5`. Both Caddyfiles set PHP `max_execution_time` / `max_input_time` **20 s** (`frankenphp { php_ini … }`, also `docker/php-dev.ini` for CLI), Caddy `servers.timeouts.write` **30 s** and FrankenPHP `max_wait_time` **30 s**, so the translate call times out first. Raise them together. Documented in [CONFIGURATION.md](CONFIGURATION.md#timeout-hierarchy-req-runtime-001).
 
 ## Run
 

@@ -337,7 +337,7 @@
         },
         {
             "name": "nowo-tech/google-translate-php-bundle",
-            "version": "dev-chore/req-wave2",
+            "version": "dev-main",
             "dist": {
                 "type": "path",
                 "url": "/var/google-translate-php-bundle",

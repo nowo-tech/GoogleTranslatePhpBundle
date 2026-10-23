@@ -341,7 +341,7 @@
             "dist": {
                 "type": "path",
                 "url": "/var/google-translate-php-bundle",
-                "reference": "95dec06ae0bd06ceeeb4cdface7ef1c8abdf68db"
+                "reference": "352ff178c90698851e2a0a7969ec46842a69d57b"
             },
             "require": {
                 "php": ">=8.2 <8.6",
@@ -4404,16 +4404,16 @@
         },
         {
             "name": "nowo-tech/hot-reload-bundle",
-            "version": "v1.6.1",
+            "version": "v1.6.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nowo-tech/HotReloadBundle.git",
-                "reference": "6d3117328bd9d7f55a70743567d04ee25d6bc366"
+                "reference": "cf84e69a6f93f95f06876638337f9f792b2bcb0a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nowo-tech/HotReloadBundle/zipball/6d3117328bd9d7f55a70743567d04ee25d6bc366",
-                "reference": "6d3117328bd9d7f55a70743567d04ee25d6bc366",
+                "url": "https://api.github.com/repos/nowo-tech/HotReloadBundle/zipball/cf84e69a6f93f95f06876638337f9f792b2bcb0a",
+                "reference": "cf84e69a6f93f95f06876638337f9f792b2bcb0a",
                 "shasum": ""
             },
             "require": {
@@ -4491,7 +4491,7 @@
                 "issues": "https://github.com/nowo-tech/HotReloadBundle/issues",
                 "source": "https://github.com/nowo-tech/HotReloadBundle"
             },
-            "time": "2026-10-13T10:57:34+00:00"
+            "time": "2026-10-21T05:26:17+00:00"
         },
         {
             "name": "nowo-tech/twig-inspector-bundle",

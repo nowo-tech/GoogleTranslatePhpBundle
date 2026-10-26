@@ -26,6 +26,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- `make coverage-check` (alias `make test-coverage-100`) runs the 100% PHP line-coverage gate from the Makefile, and `release-check` uses it instead of `test-coverage` (REQ-TEST-006).
+
 ## [1.2.3] - 2026-10-21
 
 Wave-2 REQ compliance: documented public API, PHPStan and Igor in CI, demo form type and timeout hierarchy. See [UPGRADING](UPGRADING.md#to-123).

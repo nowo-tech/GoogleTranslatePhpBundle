@@ -7,7 +7,7 @@ COMPOSE_BIN := $(shell docker compose version >/dev/null 2>&1 && echo "docker co
 COMPOSE     := $(COMPOSE_BIN) -f $(COMPOSE_FILE)
 SERVICE_PHP := php
 
-.PHONY: help up down down-dev build shell install test test-coverage coverage-php-percent cs-check cs-fix qa clean release-check release-check-demos demo-smoke composer-sync rector rector-dry phpstan igor update validate setup-hooks check-no-cursor-coauthor check-open-prs strip-cursor-coauthor-from-history check-no-raw-html-form
+.PHONY: help up down down-dev build shell install test test-coverage coverage-check test-coverage-100 coverage-php-percent cs-check cs-fix qa clean release-check release-check-demos demo-smoke composer-sync rector rector-dry phpstan igor update validate setup-hooks check-no-cursor-coauthor check-open-prs strip-cursor-coauthor-from-history check-no-raw-html-form
 
 help:
 	@echo "Google Translate PHP Bundle - Development Commands"
@@ -24,6 +24,8 @@ help:
 	@echo "  assets        No-op (no frontend in this bundle)"
 	@echo "  test          Run PHPUnit tests (starts container if needed)"
 	@echo "  test-coverage Run tests with code coverage (starts container if needed)"
+	@echo "  coverage-check Fail if PHP line coverage is under 100% (REQ-TEST-006)"
+	@echo "  test-coverage-100 Alias for coverage-check"
 	@echo "  cs-check      Check code style"
 	@echo "  cs-fix        Fix code style"
 	@echo "  rector        Apply Rector refactoring"
@@ -84,6 +86,12 @@ test-coverage: ensure-up
 	$(COMPOSE) exec $(SERVICE_PHP) composer test-coverage | tee coverage-php.txt
 	./.scripts/php-coverage-percent.sh coverage-php.txt
 
+# REQ-TEST-006: exits non-zero when PHP line coverage is under 100% (composer coverage-check → .scripts/coverage-fail-under.sh).
+coverage-check: ensure-up
+	$(COMPOSE) exec -T $(SERVICE_PHP) composer coverage-check
+
+test-coverage-100: coverage-check
+
 cs-check: ensure-up
 	$(COMPOSE) exec -T $(SERVICE_PHP) composer cs-check
 
@@ -113,7 +121,7 @@ validate: ensure-up
 igor: ensure-up
 	$(COMPOSE) exec -T php composer igor
 # REQ-MAKE-002 order.
-release-check: ensure-up check-no-cursor-coauthor check-open-prs check-no-raw-html-form composer-sync cs-fix cs-check rector-dry phpstan igor test-coverage release-check-demos
+release-check: ensure-up check-no-cursor-coauthor check-open-prs check-no-raw-html-form composer-sync cs-fix cs-check rector-dry phpstan igor coverage-check release-check-demos
 
 check-no-raw-html-form:
 	@bash .scripts/check-no-raw-html-form.sh

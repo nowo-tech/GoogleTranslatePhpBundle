@@ -33,6 +33,8 @@ Each profile is registered as `nowo_google_translate_php.translator.<name>` and 
 | `client` | `gtx` | Google Translate client param (`gtx` or `webapp`) |
 | `url` | `null` | Optional endpoint override (**https:// only**; http/relative rejected) |
 | `preserve_parameters` | `false` | `true`, `false`, or custom regex string |
+| `cache_pool` | `null` | PSR-6 cache pool service id (e.g. `cache.app`) storing translations; `null` disables the cache |
+| `cache_ttl` | `86400` | Lifetime of cached translations in seconds (`0` = no expiry) |
 | `guzzle_options` | `[]` | Extra Guzzle options (merged; timeouts from profile win) |
 
 ## Timeout hierarchy (REQ-RUNTIME-001)

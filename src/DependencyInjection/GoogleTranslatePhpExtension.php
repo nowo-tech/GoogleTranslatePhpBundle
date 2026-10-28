@@ -95,6 +95,10 @@ final class GoogleTranslatePhpExtension extends Extension
             '$logger'             => new Reference('logger', ContainerBuilder::NULL_ON_INVALID_REFERENCE),
             '$url'                => !empty($profileConfig['url']) ? (string) $profileConfig['url'] : null,
             '$client'             => (string) $profileConfig['client'],
+            '$cache'              => is_string($profileConfig['cache_pool'] ?? null) && $profileConfig['cache_pool'] !== ''
+                ? new Reference($profileConfig['cache_pool'])
+                : null,
+            '$cacheTtl' => (int) ($profileConfig['cache_ttl'] ?? 86400),
         ]);
         $definition->setAutowired(false);
         $definition->setAutoconfigured(true);

@@ -44,6 +44,26 @@ final class GoogleTranslatePhpExtensionTest extends TestCase
         self::assertSame('default', $container->getParameter('nowo_google_translate_php.default_profile'));
     }
 
+    public function testCachePoolIsWiredPerProfile(): void
+    {
+        $container = new ContainerBuilder();
+        (new GoogleTranslatePhpExtension())->load([[
+            'profiles' => [
+                'default' => ['cache_pool' => 'cache.app', 'cache_ttl' => 3600],
+                'nocache' => [],
+            ],
+        ]], $container);
+
+        $cached = $container->getDefinition('nowo_google_translate_php.translator.default')->getArguments();
+        self::assertInstanceOf(Reference::class, $cached['$cache']);
+        self::assertSame('cache.app', (string) $cached['$cache']);
+        self::assertSame(3600, $cached['$cacheTtl']);
+
+        $plain = $container->getDefinition('nowo_google_translate_php.translator.nocache')->getArguments();
+        self::assertNull($plain['$cache']);
+        self::assertSame(86400, $plain['$cacheTtl']);
+    }
+
     public function testLoadAppliesUrlClientAndEmptySource(): void
     {
         $container = new ContainerBuilder();

@@ -26,6 +26,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- **Translation cache.** New profile options `cache_pool` (PSR-6 pool service id, e.g. `cache.app`; default `null`) and
+  `cache_ttl` (seconds, default `86400`, `0` = no expiry). Translations are cached per endpoint, client, source, target,
+  parameter pattern and text hash, so repeated strings no longer cost one HTTP call each. A cache hit leaves
+  `getLastDetectedSource()` null.
+- **`translateMany(array $strings)`** translates a list (keys kept), sending each distinct string once.
+
 ### Changed
 
 - `make coverage-check` (alias `make test-coverage-100`) runs the 100% PHP line-coverage gate from the Makefile, and `release-check` uses it instead of `test-coverage` (REQ-TEST-006).

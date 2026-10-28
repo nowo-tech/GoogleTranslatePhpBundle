@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\GoogleTranslatePhpBundle\Translator;
 
+use Psr\Cache\CacheItemPoolInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Stichoza\GoogleTranslate\GoogleTranslate;
@@ -11,7 +12,13 @@ use Stichoza\GoogleTranslate\Tokens\TokenProviderInterface;
 use Symfony\Contracts\Service\ResetInterface;
 use Throwable;
 
+use function array_key_exists;
+use function hash;
+use function is_string;
+use function json_encode;
 use function strlen;
+
+use const JSON_THROW_ON_ERROR;
 
 /**
  * FrankenPHP/worker-safe GoogleTranslate:
@@ -22,6 +29,8 @@ use function strlen;
  * - Uses a per-call placeholder counter instead of upstream {@code static $index}
  *   in {@see GoogleTranslate::extractParameters()}.
  * - Logs outbound translate start/success/failure without source text (REQ-OBS-001).
+ * - Optional PSR-6 cache of translations ({@code cache_pool} per profile) and {@see translateMany()}, which sends each
+ *   distinct string once.
  *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
@@ -50,10 +59,17 @@ final class WorkerSafeGoogleTranslate extends GoogleTranslate implements ResetIn
 
     private readonly TokenProviderInterface $defaultTokenProvider;
 
+    private readonly ?CacheItemPoolInterface $cache;
+
+    private readonly int $cacheTtl;
+
     /**
      * @param array<string, mixed> $options Guzzle client options (e.g. timeout, connect_timeout, proxy)
      * @param string|null $url Google Translate endpoint (null keeps the upstream default)
      * @param string|null $client Google Translate {@code client} URL param (null keeps the upstream default)
+     * @param CacheItemPoolInterface|null $cache Stores translations keyed by endpoint, client, source, target, parameter
+     *                                           pattern and text hash (null = no cache)
+     * @param int $cacheTtl Cache lifetime in seconds (0 = no expiry)
      */
     public function __construct(
         string $target = 'en',
@@ -64,7 +80,11 @@ final class WorkerSafeGoogleTranslate extends GoogleTranslate implements ResetIn
         ?LoggerInterface $logger = null,
         ?string $url = null,
         ?string $client = null,
+        ?CacheItemPoolInterface $cache = null,
+        int $cacheTtl = 86400,
     ) {
+        $this->cache                     = $cache;
+        $this->cacheTtl                  = $cacheTtl;
         $this->defaultTarget             = $target;
         $this->defaultSource             = $source;
         $this->defaultPreserveParameters = $preserveParameters;
@@ -125,6 +145,61 @@ final class WorkerSafeGoogleTranslate extends GoogleTranslate implements ResetIn
         // Upstream returns early (same source/target, empty response) without touching it.
         $this->lastDetectedSource = null;
 
+        if (!$this->cache instanceof CacheItemPoolInterface) {
+            return $this->translateRemote($string);
+        }
+
+        // A cache hit does not detect the source language: getLastDetectedSource() stays null.
+        $item = $this->cache->getItem($this->cacheKey($string));
+        if ($item->isHit() && is_string($item->get())) {
+            return $item->get();
+        }
+
+        $result = $this->translateRemote($string);
+        if ($result !== null) {
+            $item->set($result);
+            if ($this->cacheTtl > 0) {
+                $item->expiresAfter($this->cacheTtl);
+            }
+            $this->cache->save($item);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Translates several strings with the profile settings, keeping the keys. Each distinct string is translated once
+     * (and served from the cache when one is configured), so repeated catalogue values cost a single request.
+     *
+     * @template TKey of array-key
+     *
+     * @param array<TKey, string> $strings
+     *
+     * @return array<TKey, string|null>
+     */
+    public function translateMany(array $strings): array
+    {
+        $translated = [];
+        $results    = [];
+        foreach ($strings as $key => $string) {
+            if (!array_key_exists($string, $translated)) {
+                $translated[$string] = $this->translate($string);
+            }
+            $results[$key] = $translated[$string];
+        }
+
+        return $results;
+    }
+
+    private function cacheKey(string $string): string
+    {
+        $scope = json_encode([$this->url, $this->urlParams['client'] ?? null, $this->source, $this->target, $this->pattern], JSON_THROW_ON_ERROR);
+
+        return 'nowo_gtp_' . hash('sha256', $scope . "\0" . $string);
+    }
+
+    private function translateRemote(string $string): ?string
+    {
         $context = [
             'bundle' => 'nowo_google_translate_php',
             'action' => 'translate',

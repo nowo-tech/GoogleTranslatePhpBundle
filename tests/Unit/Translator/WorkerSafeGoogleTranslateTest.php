@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Nowo\GoogleTranslatePhpBundle\Tests\Unit\Translator;
 
+use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Response;
 use Nowo\GoogleTranslatePhpBundle\Translator\WorkerSafeGoogleTranslate;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\AbstractLogger;
@@ -16,6 +18,7 @@ use ReflectionProperty;
 use Stichoza\GoogleTranslate\Exceptions\TranslationRequestException;
 use Stichoza\GoogleTranslate\GoogleTranslate;
 use Stringable;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
 use function count;
 use function sprintf;
@@ -183,5 +186,54 @@ final class WorkerSafeGoogleTranslateTest extends TestCase
         self::assertSame('nowo_google_translate_php', $warnings[0]['context']['bundle']);
         self::assertSame('translate', $warnings[0]['context']['action']);
         self::assertSame(strlen('SECRET_PAYLOAD_DO_NOT_LOG'), $warnings[0]['context']['bytes']);
+    }
+
+    public function testCachedTranslationIsServedWithoutSecondRequest(): void
+    {
+        $mock       = new MockHandler([new Response(200, [], '[[["Hola","Hello",null,null,10]],null,"en"]')]);
+        $cache      = new ArrayAdapter();
+        $translator = $this->withMock(new WorkerSafeGoogleTranslate('es', 'en', cache: $cache, cacheTtl: 60), $mock);
+
+        self::assertSame('Hola', $translator->translate('Hello'));
+        self::assertSame('Hola', $translator->translate('Hello'));
+        self::assertCount(0, $mock);
+
+        // Another target is another cache entry: it needs a request (none left in the mock).
+        $translator->setTarget('fr');
+        $this->expectException(TranslationRequestException::class);
+        $translator->translate('Hello');
+    }
+
+    public function testCacheWithoutExpiry(): void
+    {
+        $mock       = new MockHandler([new Response(200, [], '[[["Hola","Hello",null,null,10]],null,"en"]')]);
+        $cache      = new ArrayAdapter();
+        $translator = $this->withMock(new WorkerSafeGoogleTranslate('es', 'en', cache: $cache, cacheTtl: 0), $mock);
+
+        self::assertSame('Hola', $translator->translate('Hello'));
+        $other = $this->withMock(new WorkerSafeGoogleTranslate('es', 'en', cache: $cache, cacheTtl: 0), new MockHandler([]));
+        self::assertSame('Hola', $other->translate('Hello'));
+    }
+
+    public function testTranslateManyTranslatesEachDistinctStringOnce(): void
+    {
+        $mock = new MockHandler([
+            new Response(200, [], '[[["Hola","Hello",null,null,10]],null,"en"]'),
+            new Response(200, [], '[[["Mundo","World",null,null,10]],null,"en"]'),
+        ]);
+        $translator = $this->withMock(new WorkerSafeGoogleTranslate('es', 'en'), $mock);
+
+        self::assertSame(
+            ['a' => 'Hola', 'b' => 'Mundo', 'c' => 'Hola'],
+            $translator->translateMany(['a' => 'Hello', 'b' => 'World', 'c' => 'Hello']),
+        );
+        self::assertCount(0, $mock);
+    }
+
+    private function withMock(WorkerSafeGoogleTranslate $translator, MockHandler $mock): WorkerSafeGoogleTranslate
+    {
+        (new ReflectionProperty(GoogleTranslate::class, 'client'))->setValue($translator, new Client(['handler' => HandlerStack::create($mock)]));
+
+        return $translator;
     }
 }

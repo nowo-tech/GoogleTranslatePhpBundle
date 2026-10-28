@@ -115,6 +115,7 @@
     },
     "suggest": {
         "symfony/flex": "For automatic recipe installation",
+        "psr/cache": "To cache translations per profile (cache_pool option)",
         "nowo-tech/translation-yaml-tools-bundle": "Official Google Cloud / DeepL / LibreTranslate backends for YAML catalogues"
     }
 }

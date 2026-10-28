@@ -109,6 +109,15 @@ final class Configuration implements ConfigurationInterface
                                     ->thenInvalid('preserve_parameters must be a boolean or a regex string.')
                                 ->end()
                             ->end()
+                            ->scalarNode('cache_pool')
+                                ->info('PSR-6 cache pool service id (e.g. cache.app) storing translations; null disables the cache')
+                                ->defaultNull()
+                            ->end()
+                            ->integerNode('cache_ttl')
+                                ->info('Lifetime of cached translations in seconds (0 = no expiry)')
+                                ->defaultValue(86400)
+                                ->min(0)
+                            ->end()
                             ->arrayNode('guzzle_options')
                                 ->info('Extra Guzzle options for this profile; the profile timeout/connect_timeout always win over the same keys set here')
                                 ->normalizeKeys(false)
@@ -126,6 +135,8 @@ final class Configuration implements ConfigurationInterface
                             'url'                 => null,
                             'client'              => 'gtx',
                             'preserve_parameters' => false,
+                            'cache_pool'          => null,
+                            'cache_ttl'           => 86400,
                             'guzzle_options'      => [],
                         ],
                     ])

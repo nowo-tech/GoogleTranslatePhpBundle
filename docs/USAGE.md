@@ -4,6 +4,7 @@
 
 - [Inject the translator](#inject-the-translator)
 - [Preserve placeholders](#preserve-placeholders)
+- [Cache and lists](#cache-and-lists)
 - [FrankenPHP worker](#frankenphp-worker)
 - [Logging](#logging)
 - [Errors](#errors)
@@ -45,6 +46,25 @@ $translator->preserveParameters(true)->translate('Hello :name');
 ```
 
 `WorkerSafeGoogleTranslate` uses a **per-call** placeholder counter (safe under FrankenPHP worker).
+
+## Cache and lists
+
+Set `cache_pool` on a profile to keep translations in a PSR-6 pool (requires `psr/cache`, e.g. Symfony's `cache.app`):
+
+```yaml
+nowo_google_translate_php:
+    profiles:
+        default:
+            target: es
+            cache_pool: cache.app
+            cache_ttl: 86400
+```
+
+`translateMany()` translates a list in one call, keeps the keys and requests each distinct string once:
+
+```php
+$labels = $translator->translateMany(['save' => 'Save', 'cancel' => 'Cancel', 'ok' => 'Save']);
+```
 
 ## FrankenPHP worker
 

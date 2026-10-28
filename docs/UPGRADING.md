@@ -3,6 +3,7 @@
 ## Table of contents
 
 - [Unreleased](#unreleased)
+- [To 1.3.0](#to-130)
 - [To 1.2.3](#to-123)
 - [To 1.2.2](#to-122)
 - [To 1.2.1](#to-121)
@@ -25,6 +26,14 @@
   - [General upgrade checklist (future minors)](#general-upgrade-checklist-future-minors)
 
 ## Unreleased
+
+## To 1.3.0
+
+From **1.2.3**:
+
+```bash
+composer update nowo-tech/google-translate-php-bundle
+```
 
 ## To 1.2.3
 

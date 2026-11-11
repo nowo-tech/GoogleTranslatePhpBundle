@@ -74,11 +74,12 @@ final class WorkerModeWithoutResetTest extends TestCase
         self::assertSame(
             [
                 KernelEvents::REQUEST                                              => ['onKernelRequest', 4096],
-                'Symfony\\Component\\Messenger\\Event\\WorkerMessageReceivedEvent' => ['resetTranslators', 4096],
-                'Symfony\\Component\\Messenger\\Event\\WorkerMessageHandledEvent'  => ['resetTranslators', -4096],
-                'Symfony\\Component\\Messenger\\Event\\WorkerMessageFailedEvent'   => ['resetTranslators', -4096],
-                'console.command'                                                  => ['resetTranslators', 4096],
-                'console.terminate'                                                => ['resetTranslators', -4096],
+                'Symfony\\Component\\Messenger\\Event\\WorkerMessageReceivedEvent' => ['onMessageReceived', 4096],
+                'Symfony\\Component\\Messenger\\Event\\WorkerMessageHandledEvent'  => ['onMessageFinished', -4096],
+                'Symfony\\Component\\Messenger\\Event\\WorkerMessageFailedEvent'   => ['onMessageFinished', -4096],
+                'Symfony\\Component\\Messenger\\Event\\WorkerStoppedEvent'         => ['onWorkerStopped', -4096],
+                'console.command'                                                  => ['onConsoleCommand', 4096],
+                'console.terminate'                                                => ['onConsoleTerminate', -4096],
             ],
             ResetTranslatorsOnRequestSubscriber::getSubscribedEvents(),
         );

@@ -40,7 +40,9 @@ Next patch: 1.3.1.
   `setOptions()` or `setTokenProvider()` on a shared profile left those settings (for example another tenant's target
   language or Guzzle proxy) for the next one. The subscriber now also resets the already-instantiated profiles at
   `WorkerMessageReceivedEvent`, `WorkerMessageHandledEvent`, `WorkerMessageFailedEvent`, `console.command` and
-  `console.terminate`, subscribed by name (`symfony/messenger` and `symfony/console` stay optional; no profile is built
+  `console.terminate`, subscribed by name. The console boundaries reset only when the outermost command starts or
+  ends and no Messenger message is in flight, so a command run in-process from another command or from a handler
+  (`Application::doRun()`) keeps the outer unit's settings (audit MI-G-L1) (`symfony/messenger` and `symfony/console` stay optional; no profile is built
   at a boundary). Affected: 1.0.0 to 1.3.0, only on those paths and only when host code calls the setters on the
   shared service; the stock `messenger:consume` (without `--no-reset`) already reset the profiles per message. Not a
   cross-user content leak: the carried-over data is configuration, not translated text.
@@ -50,7 +52,8 @@ Next patch: 1.3.1.
 - `tests/Integration/WorkerBoundariesKernelTest.php`: one booted kernel, services resetter never called; 500 main
   requests, 500 messages through a real Messenger `Worker` without `ResetServicesListener` (every 7th fails) and 500
   console `Application` runs, alternating two tenants with their own target, source and proxy; asserts each unit starts
-  at the profile defaults and memory grows less than 1 MiB after a 50-unit warm-up. Direct `resetTranslators()` test.
+  at the profile defaults and memory grows less than 1 MiB after a 50-unit warm-up. Nested `doRun()` tests (from a
+  command and from a Messenger handler) keep the outer unit's settings. Direct `resetTranslators()` test.
 - `symfony/console` and `symfony/messenger` added to `require-dev` (tests only) and to the CI matrix install.
 - `rector.php`: `EventSubscriberToAttributeRector` skipped for the subscriber (registered by the extension without
   autoconfigure, optional events subscribed by name).

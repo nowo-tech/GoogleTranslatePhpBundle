@@ -61,7 +61,7 @@ Worker demo: `demo/symfony8/docker/frankenphp/Caddyfile` has a `worker` block; `
 | Service | Shared | Mutable state | Scenario A | Scenario B |
 |---------|--------|---------------|------------|------------|
 | `nowo_google_translate_php.translator.<profile>` (`WorkerSafeGoogleTranslate`, one per profile) | yes | inherited: `source`, `target`, `pattern`, `lastDetectedSource`, `url`, `options`, `urlParams`, `tokenProvider`, Guzzle `client`; own: `readonly` defaults + logger | ✅ | ✅ (reset on each main request) |
-| `ResetTranslatorsOnRequestSubscriber` | yes | none (`readonly`; iterator of already-instantiated profiles, `IGNORE_ON_UNINITIALIZED_REFERENCE`); resets them at every boundary listed in [Boundary events](#boundary-events) | ✅ | ✅ |
+| `ResetTranslatorsOnRequestSubscriber` | yes | console nesting depth (bounded) and in-flight message flag, maintained at the boundaries; iterator of already-instantiated profiles, `IGNORE_ON_UNINITIALIZED_REFERENCE`); resets them at every boundary listed in [Boundary events](#boundary-events) | ✅ | ✅ |
 | Aliases `WorkerSafeGoogleTranslate::class`, `GoogleTranslate::class`, `nowo_google_translate_php.translator` | point to the default profile | same instance as above | same | same |
 
 `Configuration`, `GoogleTranslatePhpExtension`, the bundle class and `UnknownProfileException` only run at container compile time.
@@ -113,8 +113,11 @@ No other findings. The override of `extractParameters()` fixes the upstream `sta
 | HTTP main request start | `kernel.request` (main requests only) | 4096 | `reset()` on every instantiated profile |
 | Messenger message start | `Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent` | 4096 | same |
 | Messenger message end | `WorkerMessageHandledEvent`, `WorkerMessageFailedEvent` | -4096 | same |
-| Console command start / end | `console.command` / `console.terminate` | 4096 / -4096 | same |
+| Console command start / end | `console.command` / `console.terminate` | 4096 / -4096 | same, only for the outermost command (depth 0→1 / 1→0) and only while no Messenger message is in flight |
+| Messenger worker stopped | `WorkerStoppedEvent` | -4096 | clears the in-flight flag only |
 | Services resetter (when the host runs it) | `kernel.reset` tag, method `reset` | — | same (kept, not relied on) |
+
+A command run in-process from another command or from a message handler (`Application::doRun()`) fires `console.command` / `console.terminate` too; the subscriber counts the nesting depth and keeps an in-flight message flag (set on received, unset on handled / failed / worker stopped), so such a nested run never resets the profiles the outer unit configured (audit MI-G-L1; same pattern as BeaconBundle 1.24.0). Tests: `WorkerBoundariesKernelTest::testNestedCommandKeepsTheOuterCommandsSettings`, `testCommandRunFromAMessageHandlerKeepsTheHandlersSettings`.
 
 The subscriber receives an `IteratorArgument` of `IGNORE_ON_UNINITIALIZED_REFERENCE` references, so a boundary never builds a profile that the unit of work did not use.
 

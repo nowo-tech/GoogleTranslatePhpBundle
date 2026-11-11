@@ -176,6 +176,93 @@ final class WorkerBoundariesKernelTest extends KernelTestCase
     }
 
     /**
+     * MI-G-L1: a command run in-process from another command (Application::doRun()) fires console.command /
+     * console.terminate, but must not reset the profile the outer command configured; the outermost command still
+     * starts and ends at the defaults.
+     */
+    public function testNestedCommandKeepsTheOuterCommandsSettings(): void
+    {
+        self::bootKernel(['debug' => false]);
+        $translator  = $this->translator();
+        $application = new Application('worker-test');
+        $application->setAutoExit(false);
+        $application->setCatchExceptions(false);
+        $application->setDispatcher($this->dispatcher());
+
+        $seenAfterInner = [];
+        $inner          = (new Command('app:inner'))->setCode(static fn (): int => Command::SUCCESS);
+        $outer          = (new Command('app:outer'))->setCode(function (InputInterface $input, OutputInterface $output) use ($application, $translator, &$seenAfterInner): int {
+            $translator->setTarget('fr')->setSource('de');
+            $application->doRun(new ArrayInput(['command' => 'app:inner']), $output);
+            $application->doRun(new ArrayInput(['command' => 'app:inner']), $output);
+            $seenAfterInner = $this->state($translator);
+
+            return Command::SUCCESS;
+        });
+        $application->setCommandLoader(new FactoryCommandLoader([
+            'app:outer' => static fn (): Command => $outer,
+            'app:inner' => static fn (): Command => $inner,
+        ]));
+
+        for ($i = 0; $i < 2; ++$i) {
+            self::assertSame(Command::SUCCESS, $application->run(new ArrayInput(['command' => 'app:outer']), new NullOutput()));
+            self::assertSame(['target' => 'fr', 'source' => 'de', 'proxy' => null], $seenAfterInner, 'A nested command reset the outer command\'s settings.');
+            $this->assertTranslatorAtDefaults($translator, 'after the outermost console.terminate');
+        }
+    }
+
+    /**
+     * MI-G-L1: a command run in-process from a Messenger handler must not reset the handler's settings; the message
+     * boundaries still reset them.
+     */
+    public function testCommandRunFromAMessageHandlerKeepsTheHandlersSettings(): void
+    {
+        self::bootKernel(['debug' => false]);
+        $translator  = $this->translator();
+        $dispatcher  = $this->dispatcher();
+        $application = new Application('worker-test');
+        $application->setAutoExit(false);
+        $application->setCatchExceptions(false);
+        $application->setDispatcher($dispatcher);
+        $inner = (new Command('app:inner'))->setCode(static fn (): int => Command::SUCCESS);
+        $application->setCommandLoader(new FactoryCommandLoader(['app:inner' => static fn (): Command => $inner]));
+
+        $seenAfterCommand = [];
+        $bus              = new MessageBus([new HandleMessageMiddleware(new HandlersLocator([
+            TenantTranslation::class => [function (TenantTranslation $message) use ($application, $translator, &$seenAfterCommand): void {
+                $translator->setTarget('fr')->setSource('de');
+                $application->doRun(new ArrayInput(['command' => 'app:inner']), new NullOutput());
+                $seenAfterCommand[] = $this->state($translator);
+            }],
+        ]))]);
+
+        $worker     = new Worker(['async' => new TenantReceiver(4)], $bus, $dispatcher);
+        $stopOnIdle = static function (WorkerRunningEvent $event): void {
+            if ($event->isWorkerIdle()) {
+                $event->getWorker()->stop();
+            }
+        };
+        $dispatcher->addListener(WorkerRunningEvent::class, $stopOnIdle);
+
+        try {
+            $worker->run(['sleep' => 0]);
+        } finally {
+            $dispatcher->removeListener(WorkerRunningEvent::class, $stopOnIdle);
+        }
+
+        self::assertCount(4, $seenAfterCommand);
+        foreach ($seenAfterCommand as $seen) {
+            self::assertSame(['target' => 'fr', 'source' => 'de', 'proxy' => null], $seen, 'A command run from the handler reset its settings.');
+        }
+        $this->assertTranslatorAtDefaults($translator, 'after the last message');
+
+        // After the worker stopped, a standalone command resets again.
+        $translator->setTarget('it');
+        $application->run(new ArrayInput(['command' => 'app:inner']), new NullOutput());
+        $this->assertTranslatorAtDefaults($translator, 'after a standalone command once the worker stopped');
+    }
+
+    /**
      * One unit of work for $tenant: the shared translator must be at the profile defaults, then the unit applies its
      * own per-tenant settings (left in place on purpose, as host code would).
      */

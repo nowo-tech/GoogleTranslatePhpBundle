@@ -27,6 +27,14 @@
 
 ## Unreleased
 
+Next patch: 1.3.1. No API change.
+
+- The translator profiles are now also reset to their configured defaults when a Messenger message is received,
+  after it is handled or failed, and when a console command starts and terminates (before, only at the start of a
+  main HTTP request and by `kernel.reset`). Settings changed with the fluent setters last for the current message or
+  command only. If a handler or command relied on settings made by a previous message or command, configure them in a
+  profile instead, or set them again at the start of each unit of work.
+
 ## To 1.3.0
 
 From **1.2.3**:

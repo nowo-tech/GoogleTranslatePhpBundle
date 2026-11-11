@@ -27,6 +27,39 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+Next patch: 1.3.1.
+
+### Fixed
+
+- **Translator settings carried over between Messenger messages and console runs (REQ-RUNTIME-002).**
+  `ResetTranslatorsOnRequestSubscriber` restored the profile defaults only at the start of a main HTTP request; on the
+  Messenger and console paths only `kernel.reset` did it. Where the services resetter does not run between units of
+  work (a host that removes, replaces or bypasses `services_resetter` or drives `http_kernel` directly, a consumer
+  started with `messenger:consume --no-reset`, or a long-running process that runs several console commands), a
+  message or command that called `setTarget()`, `setSource()`, `preserveParameters()`, `setUrl()`, `setClient()`,
+  `setOptions()` or `setTokenProvider()` on a shared profile left those settings (for example another tenant's target
+  language or Guzzle proxy) for the next one. The subscriber now also resets the already-instantiated profiles at
+  `WorkerMessageReceivedEvent`, `WorkerMessageHandledEvent`, `WorkerMessageFailedEvent`, `console.command` and
+  `console.terminate`, subscribed by name (`symfony/messenger` and `symfony/console` stay optional; no profile is built
+  at a boundary). Affected: 1.0.0 to 1.3.0, only on those paths and only when host code calls the setters on the
+  shared service; the stock `messenger:consume` (without `--no-reset`) already reset the profiles per message. Not a
+  cross-user content leak: the carried-over data is configuration, not translated text.
+
+### Tests
+
+- `tests/Integration/WorkerBoundariesKernelTest.php`: one booted kernel, services resetter never called; 500 main
+  requests, 500 messages through a real Messenger `Worker` without `ResetServicesListener` (every 7th fails) and 500
+  console `Application` runs, alternating two tenants with their own target, source and proxy; asserts each unit starts
+  at the profile defaults and memory grows less than 1 MiB after a 50-unit warm-up. Direct `resetTranslators()` test.
+- `symfony/console` and `symfony/messenger` added to `require-dev` (tests only) and to the CI matrix install.
+- `rector.php`: `EventSubscriberToAttributeRector` skipped for the subscriber (registered by the extension without
+  autoconfigure, optional events subscribed by name).
+
+### Documentation
+
+- `docs/FRANKENPHP-WORKER-AUDIT.md`: Messenger and console boundaries (W-04), the worker test, the precise
+  precondition and the host rule for Doctrine entity managers.
+
 ## [1.3.0] - 2026-10-28
 
 GoogleTranslatePhp: optional PSR-6 translation cache per profile and translateMany(). See [UPGRADING](UPGRADING.md#to-130).

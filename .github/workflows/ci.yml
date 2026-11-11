@@ -77,7 +77,9 @@ jobs:
             symfony/config:^${{ matrix.symfony }} \
             symfony/dependency-injection:^${{ matrix.symfony }} \
             symfony/http-kernel:^${{ matrix.symfony }} \
+            --dev symfony/console:^${{ matrix.symfony }} \
             --dev symfony/framework-bundle:^${{ matrix.symfony }} \
+            --dev symfony/messenger:^${{ matrix.symfony }} \
             --dev symfony/yaml:^${{ matrix.symfony }} \
             --no-interaction --no-update
           # Full update so platform PHP (e.g. 8.1) can resolve phpunit 10.x from ^10 || ^11.

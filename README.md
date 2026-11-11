@@ -13,7 +13,7 @@ This bundle is **FrankenPHP worker mode friendly**.
 ## Features
 
 - **Named profiles** (`default_profile` + `profiles`) for target/source languages, Guzzle timeouts, client, URL, and `preserve_parameters`.
-- **Worker-safe translator**: clears mutable state between requests under FrankenPHP worker / long-running PHP — including when the kernel is not reset (`ResetTranslatorsOnRequestSubscriber`).
+- **Worker-safe translator**: clears mutable state between requests, Messenger messages and console commands under FrankenPHP worker / long-running PHP — including when the kernel is kept alive and the services resetter does not run (`ResetTranslatorsOnRequestSubscriber`).
 - **Defensive `extractParameters()`**: per-call placeholder counter (no reliance on upstream `static $index`).
 - **REQ-RUNTIME-001 timeouts**: `timeout` + `connect_timeout` on every profile.
 

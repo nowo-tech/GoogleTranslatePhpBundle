@@ -11,6 +11,7 @@ declare(strict_types=1);
  * @see https://getrector.com/documentation
  */
 use Rector\Config\RectorConfig;
+use Rector\Symfony\CodeQuality\Rector\Class_\EventSubscriberToAttributeRector;
 use Rector\ValueObject\PhpVersion;
 
 return RectorConfig::configure()
@@ -30,4 +31,9 @@ return RectorConfig::configure()
     ->withSkip([
         __DIR__ . '/demo',
         __DIR__ . '/vendor',
+        // Registered by the extension (no autoconfigure) and subscribed to optional Messenger / console events by
+        // name: it must stay an EventSubscriberInterface, not #[AsEventListener] methods.
+        EventSubscriberToAttributeRector::class => [
+            __DIR__ . '/src/EventSubscriber/ResetTranslatorsOnRequestSubscriber.php',
+        ],
     ]);

@@ -3,11 +3,12 @@
 | Field | Value |
 |-------|-------|
 | Package | `nowo-tech/google-translate-php-bundle` (`symfony-bundle`) |
-| Audited revision | `v1.0.7` |
-| Audit date | 2026-09-24 |
+| Audited revision | `v1.0.7`; boundaries re-audited for 1.3.1 (REQ-RUNTIME-002, 2026-11-11) |
+| Audit date | 2026-09-24 (Messenger / console boundaries: 2026-11-11) |
 | Method | Manual review of every file under `src/` (translator service, DI extension, configuration, request subscriber) plus the upstream `stichoza/google-translate-php` class it extends |
 | Remediation (2026-09-23/24) | W-01 fixed (bundle-owned `kernel.request` subscriber resets instantiated profiles on every main request; `translate()` clears `lastDetectedSource`); W-02 fixed (`reset()` restores URL, client, options, token provider; URL/client moved to constructor args); `trans()` gets default timeouts; regression tests simulate consecutive requests on the same container without `reset()` |
-| **Verdict** | ✅ **Viable under scenario B** — every main request starts from the profile defaults whether or not `services_resetter` runs; setter changes are scoped to the current request |
+| Remediation (2026-11-11, 1.3.1) | W-04 fixed: the same subscriber also resets the profiles at the Messenger message and console command boundaries; one-kernel worker test over HTTP, Messenger and console |
+| **Verdict** | ✅ **Viable under scenario B** — every main request, Messenger message and console command starts from the profile defaults whether or not `services_resetter` runs; setter changes are scoped to the current unit of work |
 
 ## Table of contents
 
@@ -18,6 +19,10 @@
   - [W-01 — Per-call settings and `lastDetectedSource` survive when nothing is reset (Medium)](#w-01--per-call-settings-and-lastdetectedsource-survive-when-nothing-is-reset-medium)
   - [W-02 — `reset()` does not restore URL, client, Guzzle options or token provider (Low)](#w-02--reset-does-not-restore-url-client-guzzle-options-or-token-provider-low)
   - [W-03 — Long-lived Guzzle client (Info)](#w-03--long-lived-guzzle-client-info)
+  - [W-04 — No reset at the Messenger and console boundaries (Low)](#w-04--no-reset-at-the-messenger-and-console-boundaries-low)
+- [Boundary events](#boundary-events)
+- [Worker test](#worker-test)
+- [Host rule: entity managers](#host-rule-entity-managers)
 - [Usage recommendations in worker mode](#usage-recommendations-in-worker-mode)
 - [Re-audit triggers](#re-audit-triggers)
 
@@ -29,6 +34,8 @@ FrankenPHP worker mode boots the Symfony kernel once per worker and serves many 
 - **B — no reset at all:** nothing is reset; any per-request state kept in a service leaks into the next request.
 
 A bundle that is safe under **B** is safe under **A** and under classic mode / PHP-FPM.
+
+**Precondition, precisely.** `FRANKENPHP_RESET_KERNEL=false` alone does not mean scenario B: with the stock Symfony kernel, `Kernel::handle()` → `boot()` still calls `services_resetter->reset()` before every request after the first. Scenario B (reset-only state leaks) happens where the resetter does not run: a host that removes, replaces or bypasses `services_resetter` (or drives `http_kernel` directly), Messenger consumers started with `messenger:consume --no-reset`, and long-running console processes. This bundle is correct in all of them.
 
 ## Summary
 
@@ -54,7 +61,7 @@ Worker demo: `demo/symfony8/docker/frankenphp/Caddyfile` has a `worker` block; `
 | Service | Shared | Mutable state | Scenario A | Scenario B |
 |---------|--------|---------------|------------|------------|
 | `nowo_google_translate_php.translator.<profile>` (`WorkerSafeGoogleTranslate`, one per profile) | yes | inherited: `source`, `target`, `pattern`, `lastDetectedSource`, `url`, `options`, `urlParams`, `tokenProvider`, Guzzle `client`; own: `readonly` defaults + logger | ✅ | ✅ (reset on each main request) |
-| `ResetTranslatorsOnRequestSubscriber` | yes | none (`readonly`; iterator of already-instantiated profiles, `IGNORE_ON_UNINITIALIZED_REFERENCE`) | ✅ | ✅ |
+| `ResetTranslatorsOnRequestSubscriber` | yes | none (`readonly`; iterator of already-instantiated profiles, `IGNORE_ON_UNINITIALIZED_REFERENCE`); resets them at every boundary listed in [Boundary events](#boundary-events) | ✅ | ✅ |
 | Aliases `WorkerSafeGoogleTranslate::class`, `GoogleTranslate::class`, `nowo_google_translate_php.translator` | point to the default profile | same instance as above | same | same |
 
 `Configuration`, `GoogleTranslatePhpExtension`, the bundle class and `UnknownProfileException` only run at container compile time.
@@ -82,15 +89,50 @@ Worker demo: `demo/symfony8/docker/frankenphp/Caddyfile` has a `worker` block; `
 - **Recommendation:** none. Do not put a `CookieJar` or per-user credentials into `guzzle_options`: they would be shared by every request in the worker.
 - **Status:** Accepted — bounded, no per-user data.
 
+### W-04 — No reset at the Messenger and console boundaries (Low)
+
+- **Where:** `src/EventSubscriber/ResetTranslatorsOnRequestSubscriber.php` subscribed only to `kernel.request` (1.0.7 to 1.3.0).
+- **Worker impact:** a Messenger consumer has no `kernel.request`. With `messenger:consume --no-reset` (or a host without `services_resetter`), a handler that called `setTarget()`, `setSource()`, `setOptions()` (for example a per-tenant proxy) or `setTokenProvider()` on a shared profile left those settings for the next message; the same between console commands run in one long-lived process. Configuration only, no translated text.
+- **Status:** Resolved in 1.3.1 — the subscriber also calls `resetTranslators()` on `WorkerMessageReceivedEvent` (priority 4096), `WorkerMessageHandledEvent` / `WorkerMessageFailedEvent` (priority -4096), `console.command` (4096) and `console.terminate` (-4096). Event names are strings, so `symfony/messenger` and `symfony/console` stay optional. Tests: `tests/Integration/WorkerBoundariesKernelTest.php`, `tests/Unit/Translator/WorkerModeWithoutResetTest.php`.
+
 No other findings. The override of `extractParameters()` fixes the upstream `static $index` counter, which in a long-lived worker would keep growing across calls and requests, and `translate()` logs only target, source and byte length (no source text).
 
 ## Usage recommendations in worker mode
 
-- Setter changes last for the current request only: the bundle resets instantiated profiles at the start of each main request, with or without `services_resetter`. Keep `services_resetter` for long-running CLI consumers (Messenger), where there is no `kernel.request`.
+- Setter changes last for the current unit of work only: the bundle resets instantiated profiles at the start of each main request, when a Messenger message is received and after it is handled or failed, and when a console command starts and terminates, with or without `services_resetter`.
+- Inside **one** console command or Messenger message, settings stay until the next boundary: a long command that walks several tenants must set the target / source again per tenant (or use one profile per tenant).
 - Prefer one profile per target / endpoint / proxy combination over calling setters at runtime.
 - If you must change settings for a single call inside a request (or in CLI), `clone` the injected service (the clone shares the Guzzle client, which is fine) or use `WorkerSafeGoogleTranslate::trans()`.
 - Keep `timeout` / `connect_timeout` low (defaults 10 s / 5 s) and cap waiting requests with FrankenPHP `max_wait_time`; Google rate limits (`RateLimitException`) block a worker thread only for the configured timeout.
 - Subclasses of `WorkerSafeGoogleTranslate` must add any new mutable property to `reset()`.
+
+## Boundary events
+
+| Boundary | Event (subscribed by name) | Priority | Action |
+|---|---|---|---|
+| HTTP main request start | `kernel.request` (main requests only) | 4096 | `reset()` on every instantiated profile |
+| Messenger message start | `Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent` | 4096 | same |
+| Messenger message end | `WorkerMessageHandledEvent`, `WorkerMessageFailedEvent` | -4096 | same |
+| Console command start / end | `console.command` / `console.terminate` | 4096 / -4096 | same |
+| Services resetter (when the host runs it) | `kernel.reset` tag, method `reset` | — | same (kept, not relied on) |
+
+The subscriber receives an `IteratorArgument` of `IGNORE_ON_UNINITIALIZED_REFERENCE` references, so a boundary never builds a profile that the unit of work did not use.
+
+## Worker test
+
+`tests/Integration/WorkerBoundariesKernelTest.php` boots **one** kernel (`tests/Integration/Fixtures/WorkerTestKernel.php`, FrameworkBundle + this bundle) and never calls `services_resetter`:
+
+- **HTTP:** 500 main `kernel.request` dispatches (no `Kernel::handle()`, so no resetter);
+- **Messenger:** 500 messages through a real `Symfony\Component\Messenger\Worker` on the kernel's dispatcher, with no `ResetServicesListener` (as `--no-reset`); every 7th handler fails;
+- **Console:** 500 `Symfony\Component\Console\Application::run()` calls on the kernel's dispatcher.
+
+Two tenants alternate (A: `fr`/`de`/proxy A; B: `es`/`it`/proxy B). Each unit asserts that the shared translator starts at the profile defaults, then applies its own settings and leaves them in place. Memory margin: less than 1 MiB growth after a 50-unit warm-up. Without the 1.3.1 boundaries the Messenger and console cases fail (tenant B starts with tenant A's target, source and proxy). `reset()` and `resetTranslators()` are also tested directly (`tests/Unit/Translator/WorkerSafeGoogleTranslateTest.php`, `tests/Unit/Translator/WorkerModeWithoutResetTest.php`).
+
+Static checks: `composer igor` (7 service files, 0 KO, 0 WARN) and PHPStan with the FrankenPHP classic + worker rulesets pass.
+
+## Host rule: entity managers
+
+This bundle uses no Doctrine. A host that disables or bypasses the services resetter must still clear its **own** entity managers at every boundary (main request start or end, each Messenger message, each console command); otherwise the identity map serves stale rows (for example a downgraded permission or a soft-deleted item) across requests (REQ-RUNTIME-002 rule 7).
 
 ## Re-audit triggers
 

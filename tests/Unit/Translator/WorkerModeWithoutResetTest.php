@@ -69,12 +69,40 @@ final class WorkerModeWithoutResetTest extends TestCase
         self::assertNull($translator->getLastDetectedSource());
     }
 
-    public function testSubscriberListensEarlyOnKernelRequest(): void
+    public function testSubscriberListensOnEveryUnitOfWorkBoundary(): void
     {
         self::assertSame(
-            [KernelEvents::REQUEST => ['onKernelRequest', 4096]],
+            [
+                KernelEvents::REQUEST                                              => ['onKernelRequest', 4096],
+                'Symfony\\Component\\Messenger\\Event\\WorkerMessageReceivedEvent' => ['onMessageReceived', 4096],
+                'Symfony\\Component\\Messenger\\Event\\WorkerMessageHandledEvent'  => ['onMessageFinished', -4096],
+                'Symfony\\Component\\Messenger\\Event\\WorkerMessageFailedEvent'   => ['onMessageFinished', -4096],
+                'Symfony\\Component\\Messenger\\Event\\WorkerStoppedEvent'         => ['onWorkerStopped', -4096],
+                'console.command'                                                  => ['onConsoleCommand', 4096],
+                'console.terminate'                                                => ['onConsoleTerminate', -4096],
+            ],
             ResetTranslatorsOnRequestSubscriber::getSubscribedEvents(),
         );
+    }
+
+    public function testResetTranslatorsRestoresEveryInstantiatedProfileDirectly(): void
+    {
+        $container = $this->compileContainer([]);
+
+        /** @var ResetTranslatorsOnRequestSubscriber $subscriber */
+        $subscriber = $container->get(ResetTranslatorsOnRequestSubscriber::class);
+        // Nothing instantiated: the boundary builds nothing.
+        $subscriber->resetTranslators();
+        self::assertFalse($container->initialized(self::ID));
+
+        /** @var WorkerSafeGoogleTranslate $translator */
+        $translator = $container->get(self::ID);
+        $defaults   = $this->state($translator);
+        $translator->setTarget('fr')->setSource('de')->setOptions(['proxy' => 'socks5://tenant-a:1080']);
+
+        $subscriber->resetTranslators();
+
+        self::assertSame($defaults, $this->state($translator));
     }
 
     public function testTranslateNeverReturnsAPreviousDetectedSource(): void

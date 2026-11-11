@@ -3,6 +3,7 @@
 ## Table of contents
 
 - [Unreleased](#unreleased)
+- [To 1.3.1](#to-131)
 - [To 1.3.0](#to-130)
 - [To 1.2.3](#to-123)
 - [To 1.2.2](#to-122)
@@ -26,6 +27,14 @@
   - [General upgrade checklist (future minors)](#general-upgrade-checklist-future-minors)
 
 ## Unreleased
+
+## To 1.3.1
+
+From **1.3.0**:
+
+```bash
+composer update nowo-tech/google-translate-php-bundle
+```
 
 Next patch: 1.3.1. No API change.
 

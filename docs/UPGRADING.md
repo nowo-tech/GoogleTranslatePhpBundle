@@ -4,6 +4,7 @@
 
 - [Unreleased](#unreleased)
 - [To 1.4.1](#to-141)
+- [To 1.4.1](#to-141-1)
 - [To 1.4.0](#to-140)
   - [Standard host](#standard-host)
   - [DDD host](#ddd-host)
@@ -32,6 +33,14 @@
   - [General upgrade checklist (future minors)](#general-upgrade-checklist-future-minors)
 
 ## Unreleased
+
+## To 1.4.1
+
+From **1.4.0**:
+
+```bash
+composer update nowo-tech/google-translate-php-bundle
+```
 
 ## To 1.4.1
 

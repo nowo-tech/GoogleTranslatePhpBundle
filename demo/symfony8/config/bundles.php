@@ -1,8 +1,8 @@
 <?php
 
 declare(strict_types=1);
-use Nowo\GoogleTranslatePhpBundle\GoogleTranslatePhpBundle;
 use Nowo\FormKitBundle\NowoFormKitBundle;
+use Nowo\GoogleTranslatePhpBundle\GoogleTranslatePhpBundle;
 use Nowo\HotReloadBundle\NowoHotReloadBundle;
 use Nowo\TwigInspectorBundle\NowoTwigInspectorBundle;
 use Nowo\UiKitBundle\NowoUiKitBundle;
@@ -20,7 +20,7 @@ return [
     GoogleTranslatePhpBundle::class => ['all' => true],
     NowoHotReloadBundle::class      => ['dev' => true, 'test' => true],
     NowoTwigInspectorBundle::class  => ['dev' => true, 'test' => true],
-    NowoFormKitBundle::class       => ['all' => true],
-    NowoUiKitBundle::class         => ['all' => true],
+    NowoFormKitBundle::class        => ['all' => true],
+    NowoUiKitBundle::class          => ['all' => true],
     TwigExtraBundle::class          => ['all' => true],
 ];

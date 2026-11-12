@@ -13,7 +13,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
  * Demo form: text to translate (REQ-DEMO-015: a FormKit form, profile `demo`).
- * No CSRF token: translating is read-only (no state is changed on the server).
+ * The form carries the stateless CSRF token (`csrf.yaml`) like every demo form.
  *
  * @extends AbstractType<array{text?: string|null}>
  */
@@ -40,7 +40,6 @@ final class TranslateFormType extends AbstractType
     {
         $resolver->setDefaults([
             'method'             => 'POST',
-            'csrf_protection'    => false,
             'translation_domain' => false,
         ]);
     }

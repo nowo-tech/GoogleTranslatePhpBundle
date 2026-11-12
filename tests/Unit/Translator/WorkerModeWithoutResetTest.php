@@ -17,6 +17,8 @@ use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
 
+use const PHP_INT_MAX;
+
 /**
  * Same container and translator instances across consecutive requests, services_resetter never runs.
  */
@@ -73,13 +75,15 @@ final class WorkerModeWithoutResetTest extends TestCase
     {
         self::assertSame(
             [
-                KernelEvents::REQUEST                                              => ['onKernelRequest', 4096],
-                'Symfony\\Component\\Messenger\\Event\\WorkerMessageReceivedEvent' => ['onMessageReceived', 4096],
-                'Symfony\\Component\\Messenger\\Event\\WorkerMessageHandledEvent'  => ['onMessageFinished', -4096],
-                'Symfony\\Component\\Messenger\\Event\\WorkerMessageFailedEvent'   => ['onMessageFinished', -4096],
-                'Symfony\\Component\\Messenger\\Event\\WorkerStoppedEvent'         => ['onWorkerStopped', -4096],
-                'console.command'                                                  => ['onConsoleCommand', 4096],
-                'console.terminate'                                                => ['onConsoleTerminate', -4096],
+                KernelEvents::REQUEST                                              => [['onKernelRequestStarted', PHP_INT_MAX], ['onKernelRequest', 4096]],
+                'Symfony\\Component\\Messenger\\Event\\WorkerMessageReceivedEvent' => [['onMessageReceivedStarted', PHP_INT_MAX], ['onMessageReceived', 4096]],
+                'Symfony\\Component\\Messenger\\Event\\WorkerMessageHandledEvent'  => [['onMessageFinishedStarted', PHP_INT_MAX], ['onMessageFinished', -4096]],
+                'Symfony\\Component\\Messenger\\Event\\WorkerMessageFailedEvent'   => [['onMessageFinishedStarted', PHP_INT_MAX], ['onMessageFinished', -4096]],
+                'Symfony\\Component\\Messenger\\Event\\WorkerMessageSkipEvent'     => ['onMessageFinishedStarted', PHP_INT_MAX],
+                'Symfony\\Component\\Messenger\\Event\\WorkerStoppedEvent'         => ['onWorkerStopped', PHP_INT_MAX],
+                'console.command'                                                  => ['onConsoleCommand', PHP_INT_MAX],
+                'console.error'                                                    => ['onConsoleError', PHP_INT_MAX],
+                'console.terminate'                                                => [['onConsoleTerminateStarted', PHP_INT_MAX], ['onConsoleTerminate', -4096]],
             ],
             ResetTranslatorsOnRequestSubscriber::getSubscribedEvents(),
         );

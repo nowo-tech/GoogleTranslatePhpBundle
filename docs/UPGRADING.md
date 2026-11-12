@@ -3,6 +3,7 @@
 ## Table of contents
 
 - [Unreleased](#unreleased)
+- [To 1.4.1](#to-141)
 - [To 1.4.0](#to-140)
   - [Standard host](#standard-host)
   - [DDD host](#ddd-host)
@@ -31,6 +32,19 @@
   - [General upgrade checklist (future minors)](#general-upgrade-checklist-future-minors)
 
 ## Unreleased
+
+## To 1.4.1
+
+From **1.4.0**: patch, no configuration change.
+
+```bash
+composer update nowo-tech/google-translate-php-bundle
+```
+
+- The outermost console command now always resets the profiles when it ends, even when another console listener
+  throws or stops propagation, and a nested command never resets the outer command's settings mid-run.
+  `ResetTranslatorsOnRequestSubscriber` now also listens to `console.error` and `WorkerMessageSkipEvent`, and its
+  console methods take the console event. New internal `Worker\UnitOfWorkFrames` (not a service).
 
 ## To 1.4.0
 

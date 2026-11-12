@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace Nowo\GoogleTranslatePhpBundle\EventSubscriber;
 
+use Nowo\GoogleTranslatePhpBundle\Worker\UnitOfWorkFrames;
+use Symfony\Component\Console\Event\ConsoleCommandEvent;
+use Symfony\Component\Console\Event\ConsoleErrorEvent;
+use Symfony\Component\Console\Event\ConsoleTerminateEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Contracts\Service\ResetInterface;
 
-use function max;
+use const PHP_INT_MAX;
 
 /**
  * Restores the translator profiles to their configured defaults at every unit-of-work boundary.
@@ -21,9 +25,13 @@ use function max;
  * - Messenger consumers: when a message is received and after it is handled or failed;
  * - console: when the OUTERMOST command starts and when it terminates, and only while no Messenger message is in
  *   flight. A command run in-process from another command or from a message handler ({@code Application::doRun()})
- *   must not reset the profiles the outer unit configured: the nesting depth is counted on console.command /
- *   console.terminate, and the in-flight flag is set when a message is received and unset when it is handled, failed
- *   or the worker stops.
+ *   must not reset the profiles the outer unit configured.
+ *
+ * Which unit is outermost is tracked by {@see UnitOfWorkFrames} (1.4.1, audits NM / NL2-v / NL2-v2), fed at priority
+ * PHP_INT_MAX so another listener that throws or stops propagation cannot unbalance it: one frame per console run
+ * (Command + input) that saves and restores the outer Messenger state, a frame left failing by a throwing console.error
+ * listener healed at the next request, message, command or worker stop (before the handler writes its own flag). The
+ * outermost command resets right after its frame is pushed and at -4096 on terminate (verdict kept per event).
  *
  * The Messenger and console events are subscribed by name, so symfony/messenger and symfony/console
  * stay optional. Only already-instantiated profiles are reset (the iterator holds
@@ -32,28 +40,26 @@ use function max;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
  */
-final class ResetTranslatorsOnRequestSubscriber implements EventSubscriberInterface
+final class ResetTranslatorsOnRequestSubscriber implements EventSubscriberInterface, ResetInterface
 {
     /** Messenger event names (class names), subscribed without requiring symfony/messenger. */
     public const MESSENGER_WORKER_MESSAGE_RECEIVED = 'Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent';
     public const MESSENGER_WORKER_MESSAGE_HANDLED  = 'Symfony\Component\Messenger\Event\WorkerMessageHandledEvent';
     public const MESSENGER_WORKER_MESSAGE_FAILED   = 'Symfony\Component\Messenger\Event\WorkerMessageFailedEvent';
 
-    /** Console event names (ConsoleEvents::COMMAND / TERMINATE), subscribed without requiring symfony/console. */
+    /** Messenger skip event (only dispatched by `messenger:failed:retry`): the message is no longer in flight. */
+    public const MESSENGER_WORKER_MESSAGE_SKIPPED = 'Symfony\Component\Messenger\Event\WorkerMessageSkipEvent';
+
+    /** Console event names (ConsoleEvents::COMMAND / ERROR / TERMINATE), subscribed without requiring symfony/console. */
     public const CONSOLE_COMMAND   = 'console.command';
+    public const CONSOLE_ERROR     = 'console.error';
     public const CONSOLE_TERMINATE = 'console.terminate';
 
     /** Messenger event name of a stopped worker (a listener may skip a received message: no handled / failed follows). */
     public const MESSENGER_WORKER_STOPPED = 'Symfony\Component\Messenger\Event\WorkerStoppedEvent';
 
-    /**
-     * Console commands currently running in this process (nested in-process runs count). Process-lifetime counter,
-     * bounded by the nesting depth; intentionally not reset by kernel.reset.
-     */
-    private int $consoleDepth = 0;
-
-    /** A Messenger message is being handled (between received and handled / failed / worker stopped). */
-    private bool $messageInFlight = false;
+    /** Units of work running in this process (deliberately not tagged kernel.reset; the service is not autoconfigured). */
+    private readonly UnitOfWorkFrames $frames;
 
     /**
      * @param iterable<ResetInterface> $translators
@@ -61,22 +67,41 @@ final class ResetTranslatorsOnRequestSubscriber implements EventSubscriberInterf
     public function __construct(
         private readonly iterable $translators,
     ) {
+        $this->frames = new UnitOfWorkFrames();
     }
 
     /**
      * Subscribes to kernel.request, the Messenger worker events and the console command events.
+     *
+     * @return array<string, array{0: string, 1: int}|list<array{0: string, 1: int}>>
      */
     public static function getSubscribedEvents(): array
     {
         return [
-            KernelEvents::REQUEST                   => ['onKernelRequest', 4096],
-            self::MESSENGER_WORKER_MESSAGE_RECEIVED => ['onMessageReceived', 4096],
-            self::MESSENGER_WORKER_MESSAGE_HANDLED  => ['onMessageFinished', -4096],
-            self::MESSENGER_WORKER_MESSAGE_FAILED   => ['onMessageFinished', -4096],
-            self::MESSENGER_WORKER_STOPPED          => ['onWorkerStopped', -4096],
-            self::CONSOLE_COMMAND                   => ['onConsoleCommand', 4096],
-            self::CONSOLE_TERMINATE                 => ['onConsoleTerminate', -4096],
+            KernelEvents::REQUEST                   => [['onKernelRequestStarted', PHP_INT_MAX], ['onKernelRequest', 4096]],
+            self::MESSENGER_WORKER_MESSAGE_RECEIVED => [['onMessageReceivedStarted', PHP_INT_MAX], ['onMessageReceived', 4096]],
+            self::MESSENGER_WORKER_MESSAGE_HANDLED  => [['onMessageFinishedStarted', PHP_INT_MAX], ['onMessageFinished', -4096]],
+            self::MESSENGER_WORKER_MESSAGE_FAILED   => [['onMessageFinishedStarted', PHP_INT_MAX], ['onMessageFinished', -4096]],
+            self::MESSENGER_WORKER_MESSAGE_SKIPPED  => ['onMessageFinishedStarted', PHP_INT_MAX],
+            self::MESSENGER_WORKER_STOPPED          => ['onWorkerStopped', PHP_INT_MAX],
+            // Bookkeeping first (PHP_INT_MAX), the end-of-command reset late: a listener in between cannot skip it.
+            self::CONSOLE_COMMAND   => ['onConsoleCommand', PHP_INT_MAX],
+            self::CONSOLE_ERROR     => ['onConsoleError', PHP_INT_MAX],
+            self::CONSOLE_TERMINATE => [['onConsoleTerminateStarted', PHP_INT_MAX], ['onConsoleTerminate', -4096]],
         ];
+    }
+
+    /**
+     * Main request starts (bookkeeping): heals a run left failing. The main-request depth is deliberately not kept
+     * (requestFinished() at once): the request reset is unconditional and a command run from a controller keeps its
+     * pre-1.4.1 behaviour (it is its own outermost unit).
+     */
+    public function onKernelRequestStarted(RequestEvent $event): void
+    {
+        if ($event->isMainRequest()) {
+            $this->frames->requestStarted();
+            $this->frames->requestFinished();
+        }
     }
 
     /**
@@ -92,13 +117,27 @@ final class ResetTranslatorsOnRequestSubscriber implements EventSubscriberInterf
     }
 
     /**
+     * A Messenger message is received (bookkeeping).
+     */
+    public function onMessageReceivedStarted(): void
+    {
+        $this->frames->messageReceived();
+    }
+
+    /**
      * Start of a Messenger message: the profiles start from their defaults.
      */
     public function onMessageReceived(): void
     {
-        // @igor-ignore - Unit-of-work flag, set and unset at the Messenger boundaries.
-        $this->messageInFlight = true;
         $this->resetTranslators();
+    }
+
+    /**
+     * A Messenger message is handled, failed or skipped (bookkeeping).
+     */
+    public function onMessageFinishedStarted(): void
+    {
+        $this->frames->messageFinished();
     }
 
     /**
@@ -106,8 +145,6 @@ final class ResetTranslatorsOnRequestSubscriber implements EventSubscriberInterf
      */
     public function onMessageFinished(): void
     {
-        // @igor-ignore - Unit-of-work flag, set and unset at the Messenger boundaries.
-        $this->messageInFlight = false;
         $this->resetTranslators();
     }
 
@@ -116,29 +153,41 @@ final class ResetTranslatorsOnRequestSubscriber implements EventSubscriberInterf
      */
     public function onWorkerStopped(): void
     {
-        // @igor-ignore - Unit-of-work flag, set and unset at the Messenger boundaries.
-        $this->messageInFlight = false;
+        $this->frames->workerStopped();
     }
 
     /**
-     * Start of a command: resets only when the outermost command starts outside a Messenger message.
+     * A console run starts: pushes its frame; resets only when it is the outermost unit (outside a Messenger message).
      */
-    public function onConsoleCommand(): void
+    public function onConsoleCommand(ConsoleCommandEvent $event): void
     {
-        // @igor-ignore - Nesting counter of the running commands (no request data).
-        if (++$this->consoleDepth === 1 && !$this->messageInFlight) {
+        if ($this->frames->commandStarted($event)) {
             $this->resetTranslators();
         }
     }
 
     /**
+     * A console run failed (bookkeeping: its frame is marked failing until its own terminate).
+     */
+    public function onConsoleError(ConsoleErrorEvent $event): void
+    {
+        $this->frames->commandFailed($event);
+    }
+
+    /**
+     * A console run ends (bookkeeping: its frame is removed, the outermost verdict kept for the late reset).
+     */
+    public function onConsoleTerminateStarted(ConsoleTerminateEvent $event): void
+    {
+        $this->frames->commandTerminated($event);
+    }
+
+    /**
      * End of a command: resets only when the outermost command ends outside a Messenger message.
      */
-    public function onConsoleTerminate(): void
+    public function onConsoleTerminate(ConsoleTerminateEvent $event): void
     {
-        // @igor-ignore - Nesting counter of the running commands (no request data).
-        $this->consoleDepth = max(0, $this->consoleDepth - 1);
-        if ($this->consoleDepth === 0 && !$this->messageInFlight) {
+        if ($this->frames->isOutermost($event)) {
             $this->resetTranslators();
         }
     }
@@ -151,5 +200,14 @@ final class ResetTranslatorsOnRequestSubscriber implements EventSubscriberInterf
         foreach ($this->translators as $translator) {
             $translator->reset();
         }
+    }
+
+    /**
+     * Forgets the unit-of-work bookkeeping (not the translators: see resetTranslators()). Not tagged kernel.reset and
+     * not relied on in worker mode.
+     */
+    public function reset(): void
+    {
+        $this->frames->reset();
     }
 }

@@ -29,6 +29,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+Next patch: 1.4.1.
+
+### Fixed
+
+- **Console boundary counter could leak or underflow in long-lived console processes (REQ-RUNTIME-002, audit NM,
+  Low).** `ResetTranslatorsOnRequestSubscriber` counted commands with `++` on `console.command` (4096) and `--` on
+  `console.terminate` (-4096). A `console.terminate` listener in between that threw or stopped propagation (or a
+  throwing `console.error` listener, so Symfony skipped `console.terminate`) left the depth above zero for the rest of
+  the process, so the outermost command never reset the profiles again; a `console.command` listener above 4096 that
+  threw or stopped propagation skipped the `++` while the `--` still ran, so a nested command reset the profiles the
+  outer command had configured mid-run. The units of work are now tracked by the new internal
+  `Worker\UnitOfWorkFrames`, fed at `PHP_INT_MAX` (audits NM, NL2-v and NL2-v2, same design as
+  PageBuilderKitBundle): one frame per console run keyed by the Command AND its input (a command that runs itself
+  in-process is two frames), saving the outer Messenger state and restoring it when the frame is removed; a terminate
+  removes its own frame and the nested frames above it, a terminate without a frame never removes another run's frame;
+  `console.error` marks the frame as failing and a frame still failing (its error listener threw) is dropped at the
+  next main request, message, command or worker stop, before the handler writes its own flag. The outermost command
+  resets right after its frame is pushed and at -4096 on terminate. HTTP and Messenger resets were already
+  unconditional. `WorkerMessageSkipEvent` (only dispatched by `messenger:failed:retry`) also ends the message in
+  flight. New `reset()` for the bookkeeping only (not tagged `kernel.reset`).
+
+### Tests
+
+- `WorkerBoundariesKernelTest::testSkippedConsoleEventsAndFailedRunsNeverUnbalanceTheBoundaries`: real console
+  `Application` runs in the kept-alive kernel (throwing terminate listener of a nested command, unknown nested command,
+  nested `console.command` stopped above 4096, self-recursive command with a throwing error listener, error listener at
+  `PHP_INT_MIN`, throwing `WorkerMessageReceivedEvent` listener inside a command, failing command inside a message then
+  worker stop); unit tests for `UnitOfWorkFrames`.
+
 ## [1.4.0] - 2026-11-12
 
 Target **1.4.0** (minor). REQ-ARCH-001 rules 1 and 3: a bundle-owned port and exception hierarchy instead of the

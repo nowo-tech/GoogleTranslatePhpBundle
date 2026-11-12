@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|-------|
 | Package | `nowo-tech/google-translate-php-bundle` (`symfony-bundle`) |
-| Audited revision | `v1.4.0` (first audit `v1.0.7`; boundaries re-audited for 1.3.1, REQ-RUNTIME-002, 2026-11-11; 1.4.0 port and exceptions add no state) |
+| Audited revision | `v1.4.0` (first audit `v1.0.7`; boundaries re-audited for 1.3.1, REQ-RUNTIME-002, 2026-11-11; 1.4.0 port and exceptions add no state; 1.4.1 unit-of-work frames, audit NM) |
 | Audit date | 2026-09-24 (Messenger / console boundaries: 2026-11-11; header refreshed for 1.4.0 on 2026-11-12) |
 | Method | Manual review of every file under `src/` (translator service, DI extension, configuration, request subscriber) plus the upstream `stichoza/google-translate-php` class it extends |
 | Remediation (2026-09-23/24) | W-01 fixed (bundle-owned `kernel.request` subscriber resets instantiated profiles on every main request; `translate()` clears `lastDetectedSource`); W-02 fixed (`reset()` restores URL, client, options, token provider; URL/client moved to constructor args); `trans()` gets default timeouts; regression tests simulate consecutive requests on the same container without `reset()` |
@@ -61,7 +61,7 @@ Worker demo: `demo/symfony8/docker/frankenphp/Caddyfile` has a `worker` block; `
 | Service | Shared | Mutable state | Scenario A | Scenario B |
 |---------|--------|---------------|------------|------------|
 | `nowo_google_translate_php.translator.<profile>` (`WorkerSafeGoogleTranslate`, one per profile) | yes | inherited: `source`, `target`, `pattern`, `lastDetectedSource`, `url`, `options`, `urlParams`, `tokenProvider`, Guzzle `client`; own: `readonly` defaults + logger | ✅ | ✅ (reset on each main request) |
-| `ResetTranslatorsOnRequestSubscriber` | yes | console nesting depth (bounded) and in-flight message flag, maintained at the boundaries; iterator of already-instantiated profiles, `IGNORE_ON_UNINITIALIZED_REFERENCE`); resets them at every boundary listed in [Boundary events](#boundary-events) | ✅ | ✅ |
+| `ResetTranslatorsOnRequestSubscriber` | yes | a private `Worker\UnitOfWorkFrames` since 1.4.1 (console frames keyed by Command + input, bounded by the nesting depth, in-flight message flag, per-event verdicts in a `WeakMap`), maintained at the boundaries (`reset()` exists, not tagged `kernel.reset`); iterator of already-instantiated profiles, `IGNORE_ON_UNINITIALIZED_REFERENCE`); resets them at every boundary listed in [Boundary events](#boundary-events) | ✅ | ✅ |
 | Aliases `GoogleTranslatorInterface::class` (1.4), `GoogleTranslatorInterface $<profile>Translator` (1.4), `WorkerSafeGoogleTranslate::class`, `GoogleTranslate::class` (deprecated 1.4), `nowo_google_translate_php.translator` | point to the default (or named) profile | same instance as above | same | same |
 | Copy built by `translateTo()` / `translateManyTo()` (1.4) | no (local to the call) | a `clone` of the profile reset to its defaults, then given the call's languages; shares the Guzzle client and the cache, never stored | ✅ | ✅ (the shared profile is not changed) |
 
@@ -114,11 +114,13 @@ No other findings. The override of `extractParameters()` fixes the upstream `sta
 | HTTP main request start | `kernel.request` (main requests only) | 4096 | `reset()` on every instantiated profile |
 | Messenger message start | `Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent` | 4096 | same |
 | Messenger message end | `WorkerMessageHandledEvent`, `WorkerMessageFailedEvent` | -4096 | same |
-| Console command start / end | `console.command` / `console.terminate` | 4096 / -4096 | same, only for the outermost command (depth 0→1 / 1→0) and only while no Messenger message is in flight |
+| Console command start / end | `console.command` / `console.terminate` | `PHP_INT_MAX` (frame push + reset) / `PHP_INT_MAX` (frame removal) + -4096 (reset) | same, only for the outermost command (first frame, since 1.4.1) and only while no Messenger message is in flight |
 | Messenger worker stopped | `WorkerStoppedEvent` | -4096 | clears the in-flight flag only |
 | Services resetter (when the host runs it) | `kernel.reset` tag, method `reset` | — | same (kept, not relied on) |
 
 A command run in-process from another command or from a message handler (`Application::doRun()`) fires `console.command` / `console.terminate` too; the subscriber counts the nesting depth and keeps an in-flight message flag (set on received, unset on handled / failed / worker stopped), so such a nested run never resets the profiles the outer unit configured (audit MI-G-L1; same pattern as BeaconBundle 1.24.0). Tests: `WorkerBoundariesKernelTest::testNestedCommandKeepsTheOuterCommandsSettings`, `testCommandRunFromAMessageHandlerKeepsTheHandlersSettings`.
+
+Audit NM (1.4.1, Low): the depth counter (`++` at 4096, `--` at -4096) leaked when a console listener in between threw or stopped propagation, so the outermost command of a long-lived process stopped resetting the profiles; reverse case: a nested command whose `console.command` was stopped above 4096 reset the outer command's settings mid-run. Now `Worker\UnitOfWorkFrames` fed at `PHP_INT_MAX` (audits NL2-v / NL2-v2 design): a frame per console run (Command + input) saving and restoring the outer Messenger state, a terminate without a frame never removes another run's frame, a frame left failing by a throwing error listener is dropped at the next request / message / command / worker stop before the handler writes its own flag. Tests: `WorkerBoundariesKernelTest::testSkippedConsoleEventsAndFailedRunsNeverUnbalanceTheBoundaries`, `UnitOfWorkFramesTest`.
 
 The subscriber receives an `IteratorArgument` of `IGNORE_ON_UNINITIALIZED_REFERENCE` references, so a boundary never builds a profile that the unit of work did not use.
 

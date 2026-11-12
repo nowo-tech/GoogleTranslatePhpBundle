@@ -4,8 +4,11 @@
     "type": "project",
     "license": "MIT",
     "require": {
-        "php": ">=8.4,<8.6",
+        "nowo-tech/form-kit-bundle": "^2.22",
         "nowo-tech/google-translate-php-bundle": "@dev",
+        "nowo-tech/ui-kit-bundle": "^2.49",
+        "php": ">=8.4,<8.6",
+        "symfony/asset": "^8.0",
         "symfony/console": "^8.0",
         "symfony/debug-bundle": "^8.0",
         "symfony/dotenv": "^8.0",

@@ -37,21 +37,24 @@ nowo_google_translate_php:
 ```
 
 ```php
-use Nowo\GoogleTranslatePhpBundle\Translator\WorkerSafeGoogleTranslate;
+use Nowo\GoogleTranslatePhpBundle\Contract\GoogleTranslatorInterface;
 
 final class MyService
 {
     public function __construct(
-        private readonly WorkerSafeGoogleTranslate $translator,
+        private readonly GoogleTranslatorInterface $translator,
     ) {
     }
 
     public function run(string $text): ?string
     {
-        return $this->translator->translate($text);
+        return $this->translator->translateTo($text, 'es');
     }
 }
 ```
+
+Standard Symfony hosts and DDD / hexagonal hosts (domain port implemented on `GoogleTranslatorInterface`, bundle
+exceptions only): see [USAGE — Inject the translator](docs/USAGE.md#inject-the-translator).
 
 ## Requirements
 

@@ -4,9 +4,21 @@ declare(strict_types=1);
 
 namespace Nowo\GoogleTranslatePhpBundle\Translator;
 
+use Nowo\GoogleTranslatePhpBundle\Contract\GoogleTranslatorInterface;
+use Nowo\GoogleTranslatePhpBundle\Exception\LanguagesRequestFailedException;
+use Nowo\GoogleTranslatePhpBundle\Exception\TranslationDecodingFailedException;
+use Nowo\GoogleTranslatePhpBundle\Exception\TranslationExceptionInterface;
+use Nowo\GoogleTranslatePhpBundle\Exception\TranslationRateLimitedException;
+use Nowo\GoogleTranslatePhpBundle\Exception\TranslationRequestFailedException;
+use Nowo\GoogleTranslatePhpBundle\Exception\TranslationTextTooLargeException;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use Stichoza\GoogleTranslate\Exceptions\LanguagesRequestException;
+use Stichoza\GoogleTranslate\Exceptions\LargeTextException;
+use Stichoza\GoogleTranslate\Exceptions\RateLimitException;
+use Stichoza\GoogleTranslate\Exceptions\TranslationDecodingException;
+use Stichoza\GoogleTranslate\Exceptions\TranslationRequestException;
 use Stichoza\GoogleTranslate\GoogleTranslate;
 use Stichoza\GoogleTranslate\Tokens\TokenProviderInterface;
 use Symfony\Contracts\Service\ResetInterface;
@@ -31,11 +43,15 @@ use const JSON_THROW_ON_ERROR;
  * - Logs outbound translate start/success/failure without source text (REQ-OBS-001).
  * - Optional PSR-6 cache of translations ({@code cache_pool} per profile) and {@see translateMany()}, which sends each
  *   distinct string once.
+ * - Since 1.4 implements the bundle port {@see GoogleTranslatorInterface} (type-hint it instead of this class or the
+ *   stichoza parent), with {@see translateTo()} / {@see translateManyTo()} that never change the shared profile, and
+ *   reports failures as {@see TranslationExceptionInterface} (each class extends the stichoza exception it replaces,
+ *   which stays the `previous` exception).
  *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
  */
-final class WorkerSafeGoogleTranslate extends GoogleTranslate implements ResetInterface
+final class WorkerSafeGoogleTranslate extends GoogleTranslate implements GoogleTranslatorInterface, ResetInterface
 {
     /**
      * Timeouts applied by {@see trans()} when the caller does not pass them.
@@ -191,6 +207,78 @@ final class WorkerSafeGoogleTranslate extends GoogleTranslate implements ResetIn
         return $results;
     }
 
+    /**
+     * Translates into `$target` from `$source` (null: detect the source language) on a copy of this profile reset to
+     * its configured settings: this instance is not changed, and setter calls made on it do not apply.
+     *
+     * @since 1.4.0
+     */
+    public function translateTo(string $string, string $target, ?string $source = null): ?string
+    {
+        return $this->forLanguages($target, $source)->translate($string);
+    }
+
+    /**
+     * {@see translateTo()} for several strings, keeping the keys; each distinct string is sent once.
+     *
+     * @template TKey of array-key
+     *
+     * @param array<TKey, string> $strings
+     *
+     * @return array<TKey, string|null>
+     *
+     * @since 1.4.0
+     */
+    public function translateManyTo(array $strings, string $target, ?string $source = null): array
+    {
+        return $this->forLanguages($target, $source)->translateMany($strings);
+    }
+
+    /**
+     * Same as the parent; since 1.4 failures are {@see LanguagesRequestFailedException} /
+     * {@see TranslationRateLimitedException} (subclasses of the stichoza exceptions, which stay `previous`).
+     *
+     * @return array<string, string>|string[]
+     */
+    public function languages(?string $target = null): array
+    {
+        try {
+            return parent::languages($target);
+        } catch (Throwable $e) {
+            throw $this->bundleException($e);
+        }
+    }
+
+    /**
+     * The stichoza exception as the bundle exception that extends it (the original is `previous`); other throwables
+     * and bundle exceptions are returned unchanged.
+     */
+    private function bundleException(Throwable $e): Throwable
+    {
+        return match (true) {
+            $e instanceof TranslationExceptionInterface => $e,
+            $e instanceof RateLimitException            => TranslationRateLimitedException::fromVendor($e),
+            $e instanceof LargeTextException            => TranslationTextTooLargeException::fromVendor($e),
+            $e instanceof TranslationRequestException   => TranslationRequestFailedException::fromVendor($e),
+            $e instanceof TranslationDecodingException  => TranslationDecodingFailedException::fromVendor($e),
+            $e instanceof LanguagesRequestException     => LanguagesRequestFailedException::fromVendor($e),
+            default                                     => $e,
+        };
+    }
+
+    /**
+     * A copy of this profile with its configured settings and the given languages (this instance is not changed).
+     */
+    private function forLanguages(string $target, ?string $source): self
+    {
+        $translator = clone $this;
+        $translator->reset();
+        $translator->setTarget($target);
+        $translator->setSource($source);
+
+        return $translator;
+    }
+
     private function cacheKey(string $string): string
     {
         $scope = json_encode([$this->url, $this->urlParams['client'] ?? null, $this->source, $this->target, $this->pattern], JSON_THROW_ON_ERROR);
@@ -220,7 +308,7 @@ final class WorkerSafeGoogleTranslate extends GoogleTranslate implements ResetIn
                 'exception' => $e::class,
             ]);
 
-            throw $e;
+            throw $this->bundleException($e);
         }
     }
 

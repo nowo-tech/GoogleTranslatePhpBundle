@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\GoogleTranslatePhpBundle\DependencyInjection;
 
+use Nowo\GoogleTranslatePhpBundle\Contract\GoogleTranslatorInterface;
 use Nowo\GoogleTranslatePhpBundle\EventSubscriber\ResetTranslatorsOnRequestSubscriber;
 use Nowo\GoogleTranslatePhpBundle\Exception\UnknownProfileException;
 use Nowo\GoogleTranslatePhpBundle\Translator\WorkerSafeGoogleTranslate;
@@ -49,6 +50,8 @@ final class GoogleTranslatePhpExtension extends Extension
         foreach ($config['profiles'] as $name => $profileConfig) {
             $serviceId     = $this->registerTranslator($container, (string) $name, $profileConfig);
             $translators[] = new Reference($serviceId, ContainerInterface::IGNORE_ON_UNINITIALIZED_REFERENCE);
+            // Since 1.4: `GoogleTranslatorInterface $<profile>Translator` autowires that profile.
+            $container->registerAliasForArgument($serviceId, GoogleTranslatorInterface::class, $name . 'Translator');
         }
 
         // Only already-instantiated translators are reset (same strategy as services_resetter).
@@ -60,8 +63,12 @@ final class GoogleTranslatePhpExtension extends Extension
 
         $container->setAlias(WorkerSafeGoogleTranslate::class, $defaultServiceId)
             ->setPublic(false);
-        $container->setAlias(GoogleTranslate::class, $defaultServiceId)
+        // Since 1.4 the bundle port; the vendor-class alias below is deprecated (removed in 2.0).
+        $container->setAlias(GoogleTranslatorInterface::class, $defaultServiceId)
             ->setPublic(false);
+        $container->setAlias(GoogleTranslate::class, $defaultServiceId)
+            ->setPublic(false)
+            ->setDeprecated('nowo-tech/google-translate-php-bundle', '1.4', 'The "%alias_id%" autowiring alias is deprecated, type-hint "' . GoogleTranslatorInterface::class . '" instead (removed in 2.0).');
         $container->setAlias('nowo_google_translate_php.translator', $defaultServiceId)
             ->setPublic(false);
 

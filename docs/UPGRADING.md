@@ -3,6 +3,10 @@
 ## Table of contents
 
 - [Unreleased](#unreleased)
+- [To 1.4.0](#to-140)
+  - [Standard host](#standard-host)
+  - [DDD host](#ddd-host)
+  - [Removal in 2.0](#removal-in-20)
 - [To 1.3.1](#to-131)
 - [To 1.3.0](#to-130)
 - [To 1.2.3](#to-123)
@@ -27,6 +31,47 @@
   - [General upgrade checklist (future minors)](#general-upgrade-checklist-future-minors)
 
 ## Unreleased
+
+## To 1.4.0
+
+From **1.3.x**:
+
+```bash
+composer update nowo-tech/google-translate-php-bundle
+```
+
+Nothing to change. The deprecation report lists services that still autowire `Stichoza\GoogleTranslate\GoogleTranslate`.
+
+### Standard host
+
+| 1.3 | 1.4 |
+| --- | --- |
+| `GoogleTranslate $translator` / `WorkerSafeGoogleTranslate $translator` | `GoogleTranslatorInterface $translator` |
+| `$translator->setTarget('fr')->setSource('en')->translate($text)` | `$translator->translateTo($text, 'fr', 'en')` |
+| a profile service id in `services.yaml` | `GoogleTranslatorInterface $marketingTranslator` |
+| `catch (RateLimitException $e)` | `catch (TranslationRateLimitedException $e)` (or `TranslationExceptionInterface`) |
+
+- The fluent setters keep working on `WorkerSafeGoogleTranslate`; `translateTo()` ignores them (it starts from the
+  profile settings).
+- A runtime `setOptions()` (proxy, timeouts, …), `setUrl()`, `setClient()`, `setTokenProvider()` or
+  `preserveParameters()` call on the shared instance does **not** apply to `translateTo()` / `translateManyTo()`:
+  put such settings in the profile configuration (or keep using the setters with `translate()`).
+- `GoogleTranslatorInterface $<profile>Translator` exists only when the camelized name is a valid PHP variable name
+  and unique: a profile named `2024`, `1st` or `0` gets no named alias, nor do `fr_ca` and `fr-ca` together (both
+  would be `$frCaTranslator`). Use the service id `nowo_google_translate_php.translator.<profile>` for those.
+- Failures are the bundle exceptions: vendor `catch` blocks still catch them (each extends the stichoza class), and the
+  vendor exception is `getPrevious()`. Only an exact class comparison (`get_class($e) === RateLimitException::class`)
+  changes.
+
+### DDD host
+
+Implement your own domain port in the infrastructure layer on `GoogleTranslatorInterface` and catch
+`TranslationExceptionInterface` (see USAGE, "DDD / hexagonal host"): no stichoza type and no setter in your code.
+
+### Removal in 2.0
+
+The `Stichoza\GoogleTranslate\GoogleTranslate` autowiring alias, and the stichoza parent classes of the bundle
+exceptions (catch the bundle types).
 
 ## To 1.3.1
 

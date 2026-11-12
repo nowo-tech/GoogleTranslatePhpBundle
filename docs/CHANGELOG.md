@@ -28,6 +28,41 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+Target **1.4.0** (minor). REQ-ARCH-001 rules 1 and 3: a bundle-owned port and exception hierarchy instead of the
+stichoza class and exceptions. Standard hosts: nothing to change.
+
+### Added
+
+- **`Nowo\GoogleTranslatePhpBundle\Contract\GoogleTranslatorInterface`**, implemented by `WorkerSafeGoogleTranslate` and
+  autowired to the default profile: `translate()`, `translateMany()` (profile settings) and the new
+  `translateTo(string, string $target, ?string $source = null)` / `translateManyTo()`, which work on a copy of the
+  profile reset to its configured settings and never change the shared service (no setter needed).
+- Named autowiring aliases per profile: `GoogleTranslatorInterface $<profile>Translator`, only for a valid, unique
+  camelized name (audit MY-G-1): profile names such as `2024`, `1st` or `0` still compile and get no named alias, and
+  two names that camelize alike (`fr_ca`, `fr-ca`) get none, so no profile silently wins.
+- **Bundle exception hierarchy** `Exception\TranslationExceptionInterface`: `TranslationRateLimitedException`,
+  `TranslationTextTooLargeException`, `TranslationRequestFailedException`, `TranslationDecodingFailedException`,
+  `LanguagesRequestFailedException`. The stichoza exception is the `previous` one (same message and code).
+- Tests: the port sends exactly the request of the setters + `translate()` and returns the same result; every failure
+  is still caught by the 1.3 vendor `catch` block; `lint:container` with host services on the new port only, on the
+  deprecated alias only, on both, and a DDD adapter on the port and the exception interface only.
+
+### Changed
+
+- `translate()`, `translateMany()` and `languages()` now throw the bundle exceptions. Each one extends the stichoza
+  exception it replaces, so `catch (RateLimitException ...)` and the other vendor `catch` blocks keep working; only
+  code comparing `get_class($e)` with a vendor class sees the new class. Log records keep the vendor class name.
+
+### Deprecated
+
+- The `Stichoza\GoogleTranslate\GoogleTranslate` autowiring alias (removed in 2.0): type-hint
+  `GoogleTranslatorInterface`.
+
+### Unchanged
+
+- `ResetTranslatorsOnRequestSubscriber` (1.3.1 boundaries and console depth counter), `kernel.reset`, the per-call
+  placeholder counter, the cache and the logging without source text.
+
 ## [1.3.1] - 2026-11-11
 
 Next patch: 1.3.1.

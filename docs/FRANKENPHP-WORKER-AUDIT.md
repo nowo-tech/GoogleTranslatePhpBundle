@@ -62,7 +62,8 @@ Worker demo: `demo/symfony8/docker/frankenphp/Caddyfile` has a `worker` block; `
 |---------|--------|---------------|------------|------------|
 | `nowo_google_translate_php.translator.<profile>` (`WorkerSafeGoogleTranslate`, one per profile) | yes | inherited: `source`, `target`, `pattern`, `lastDetectedSource`, `url`, `options`, `urlParams`, `tokenProvider`, Guzzle `client`; own: `readonly` defaults + logger | ✅ | ✅ (reset on each main request) |
 | `ResetTranslatorsOnRequestSubscriber` | yes | console nesting depth (bounded) and in-flight message flag, maintained at the boundaries; iterator of already-instantiated profiles, `IGNORE_ON_UNINITIALIZED_REFERENCE`); resets them at every boundary listed in [Boundary events](#boundary-events) | ✅ | ✅ |
-| Aliases `WorkerSafeGoogleTranslate::class`, `GoogleTranslate::class`, `nowo_google_translate_php.translator` | point to the default profile | same instance as above | same | same |
+| Aliases `GoogleTranslatorInterface::class` (1.4), `GoogleTranslatorInterface $<profile>Translator` (1.4), `WorkerSafeGoogleTranslate::class`, `GoogleTranslate::class` (deprecated 1.4), `nowo_google_translate_php.translator` | point to the default (or named) profile | same instance as above | same | same |
+| Copy built by `translateTo()` / `translateManyTo()` (1.4) | no (local to the call) | a `clone` of the profile reset to its defaults, then given the call's languages; shares the Guzzle client and the cache, never stored | ✅ | ✅ (the shared profile is not changed) |
 
 `Configuration`, `GoogleTranslatePhpExtension`, the bundle class and `UnknownProfileException` only run at container compile time.
 

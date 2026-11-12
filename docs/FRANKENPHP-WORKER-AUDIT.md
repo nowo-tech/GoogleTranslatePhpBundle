@@ -3,8 +3,8 @@
 | Field | Value |
 |-------|-------|
 | Package | `nowo-tech/google-translate-php-bundle` (`symfony-bundle`) |
-| Audited revision | `v1.0.7`; boundaries re-audited for 1.3.1 (REQ-RUNTIME-002, 2026-11-11) |
-| Audit date | 2026-09-24 (Messenger / console boundaries: 2026-11-11) |
+| Audited revision | `v1.4.0` (first audit `v1.0.7`; boundaries re-audited for 1.3.1, REQ-RUNTIME-002, 2026-11-11; 1.4.0 port and exceptions add no state) |
+| Audit date | 2026-09-24 (Messenger / console boundaries: 2026-11-11; header refreshed for 1.4.0 on 2026-11-12) |
 | Method | Manual review of every file under `src/` (translator service, DI extension, configuration, request subscriber) plus the upstream `stichoza/google-translate-php` class it extends |
 | Remediation (2026-09-23/24) | W-01 fixed (bundle-owned `kernel.request` subscriber resets instantiated profiles on every main request; `translate()` clears `lastDetectedSource`); W-02 fixed (`reset()` restores URL, client, options, token provider; URL/client moved to constructor args); `trans()` gets default timeouts; regression tests simulate consecutive requests on the same container without `reset()` |
 | Remediation (2026-11-11, 1.3.1) | W-04 fixed: the same subscriber also resets the profiles at the Messenger message and console command boundaries; one-kernel worker test over HTTP, Messenger and console |

@@ -20,7 +20,7 @@ The bundle uses **named profiles** (Nowo REQ-CFG-001):
 
 If `default_profile` is missing from `profiles`, compilation fails with `UnknownProfileException`.
 
-Each profile is registered as `nowo_google_translate_php.translator.<name>` and tagged with `kernel.reset`. Since 1.4 each profile also has the named autowiring alias `GoogleTranslatorInterface $<name>Translator` (e.g. `$marketingTranslator`). Independently of `services_resetter`, already-instantiated profiles are also reset on each main HTTP request (see [USAGE.md](USAGE.md) / [FRANKENPHP-WORKER-AUDIT.md](FRANKENPHP-WORKER-AUDIT.md)).
+Each profile is registered as `nowo_google_translate_php.translator.<name>` and tagged with `kernel.reset`. Since 1.4 each profile also has the named autowiring alias `GoogleTranslatorInterface $<name>Translator` (e.g. `$marketingTranslator`) when the camelized name is a valid, unique PHP variable name; a profile such as `2024`, or two profiles such as `fr_ca` and `fr-ca` that both camelize to `$frCaTranslator`, get no named alias (use the service id). Independently of `services_resetter`, already-instantiated profiles are also reset on each main HTTP request (see [USAGE.md](USAGE.md) / [FRANKENPHP-WORKER-AUDIT.md](FRANKENPHP-WORKER-AUDIT.md)).
 
 ## Profile options
 

@@ -18,8 +18,14 @@ use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
 
+use function count;
 use function is_string;
+use function lcfirst;
+use function preg_match;
+use function preg_replace;
 use function sprintf;
+use function str_replace;
+use function ucwords;
 
 /**
  * Loads services and wires WorkerSafeGoogleTranslate instances from named profiles.
@@ -46,12 +52,24 @@ final class GoogleTranslatePhpExtension extends Extension
             throw UnknownProfileException::forProfile($defaultProfile);
         }
 
-        $translators = [];
+        $translators   = [];
+        $argumentNames = [];
         foreach ($config['profiles'] as $name => $profileConfig) {
             $serviceId     = $this->registerTranslator($container, (string) $name, $profileConfig);
             $translators[] = new Reference($serviceId, ContainerInterface::IGNORE_ON_UNINITIALIZED_REFERENCE);
-            // Since 1.4: `GoogleTranslatorInterface $<profile>Translator` autowires that profile.
-            $container->registerAliasForArgument($serviceId, GoogleTranslatorInterface::class, $name . 'Translator');
+            $argumentName  = $this->argumentName((string) $name);
+            if ($argumentName !== null) {
+                $argumentNames[$argumentName][] = $serviceId;
+            }
+        }
+
+        // Since 1.4: `GoogleTranslatorInterface $<profile>Translator` autowires that profile. A profile whose name is no
+        // valid argument name (e.g. "2024") gets no such alias, and neither do profiles whose names map to the same one
+        // (e.g. "fr_ca" and "fr-ca"): the service id still works, and no profile silently wins.
+        foreach ($argumentNames as $argumentName => $serviceIds) {
+            if (count($serviceIds) === 1) {
+                $container->setAlias(GoogleTranslatorInterface::class . ' $' . $argumentName, $serviceIds[0])->setPublic(false);
+            }
         }
 
         // Only already-instantiated translators are reset (same strategy as services_resetter).
@@ -115,6 +133,17 @@ final class GoogleTranslatePhpExtension extends Extension
         $container->setDefinition($serviceId, $definition);
 
         return $serviceId;
+    }
+
+    /**
+     * The autowiring argument name of a profile (`marketing` → `marketingTranslator`, `fr_ca` → `frCaTranslator`, the
+     * camelization of Symfony's registerAliasForArgument()), or null when it is no valid PHP variable name.
+     */
+    private function argumentName(string $profile): ?string
+    {
+        $name = lcfirst(str_replace(' ', '', ucwords((string) preg_replace('/[^a-zA-Z0-9\x7f-\xff]++/', ' ', $profile . 'Translator'))));
+
+        return preg_match('/^[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*$/', $name) === 1 ? $name : null;
     }
 
     /**

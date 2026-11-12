@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\GoogleTranslatePhpBundle\Tests\Unit\DependencyInjection;
 
+use Nowo\GoogleTranslatePhpBundle\Contract\GoogleTranslatorInterface;
 use Nowo\GoogleTranslatePhpBundle\DependencyInjection\GoogleTranslatePhpExtension;
 use Nowo\GoogleTranslatePhpBundle\EventSubscriber\ResetTranslatorsOnRequestSubscriber;
 use Nowo\GoogleTranslatePhpBundle\Exception\UnknownProfileException;
@@ -157,6 +158,36 @@ final class GoogleTranslatePhpExtensionTest extends TestCase
                 'default' => [],
             ],
         ]], new ContainerBuilder());
+    }
+
+    /**
+     * Audit MY-G-1: the named argument alias is registered only for a valid, unique argument name. Profile names that
+     * 1.3 accepted (leading digit, integer key) still compile, and two names that camelize alike get no alias.
+     */
+    public function testNamedArgumentAliasesSkipInvalidAndCollidingProfileNames(): void
+    {
+        $container = new ContainerBuilder();
+        (new GoogleTranslatePhpExtension())->load([[
+            'profiles' => [
+                'default'   => [],
+                'marketing' => ['target' => 'es'],
+                '2024'      => ['target' => 'de'],
+                '1st'       => ['target' => 'it'],
+                0           => ['target' => 'pt'],
+                'fr_ca'     => ['target' => 'fr'],
+                'fr-ca'     => ['target' => 'fr'],
+            ],
+        ]], $container);
+
+        $interface = GoogleTranslatorInterface::class;
+        self::assertSame('nowo_google_translate_php.translator.default', (string) $container->getAlias($interface . ' $defaultTranslator'));
+        self::assertSame('nowo_google_translate_php.translator.marketing', (string) $container->getAlias($interface . ' $marketingTranslator'));
+        foreach (['2024', '1st', '0', 'fr_ca', 'fr-ca'] as $profile) {
+            self::assertTrue($container->hasDefinition('nowo_google_translate_php.translator.' . $profile), $profile . ': the profile service still exists');
+        }
+        self::assertFalse($container->hasAlias($interface . ' $frCaTranslator'), 'colliding names: no profile silently wins');
+        $named = array_filter(array_keys($container->getAliases()), static fn (string $id): bool => str_starts_with($id, $interface . ' $'));
+        self::assertEqualsCanonicalizing([$interface . ' $defaultTranslator', $interface . ' $marketingTranslator'], array_values($named));
     }
 
     public function testGetAlias(): void

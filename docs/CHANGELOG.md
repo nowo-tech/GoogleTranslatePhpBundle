@@ -37,7 +37,9 @@ stichoza class and exceptions. Standard hosts: nothing to change.
   autowired to the default profile: `translate()`, `translateMany()` (profile settings) and the new
   `translateTo(string, string $target, ?string $source = null)` / `translateManyTo()`, which work on a copy of the
   profile reset to its configured settings and never change the shared service (no setter needed).
-- Named autowiring aliases per profile: `GoogleTranslatorInterface $<profile>Translator`.
+- Named autowiring aliases per profile: `GoogleTranslatorInterface $<profile>Translator`, only for a valid, unique
+  camelized name (audit MY-G-1): profile names such as `2024`, `1st` or `0` still compile and get no named alias, and
+  two names that camelize alike (`fr_ca`, `fr-ca`) get none, so no profile silently wins.
 - **Bundle exception hierarchy** `Exception\TranslationExceptionInterface`: `TranslationRateLimitedException`,
   `TranslationTextTooLargeException`, `TranslationRequestFailedException`, `TranslationDecodingFailedException`,
   `LanguagesRequestFailedException`. The stichoza exception is the `previous` one (same message and code).

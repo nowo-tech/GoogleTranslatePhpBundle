@@ -53,6 +53,12 @@ Nothing to change. The deprecation report lists services that still autowire `St
 
 - The fluent setters keep working on `WorkerSafeGoogleTranslate`; `translateTo()` ignores them (it starts from the
   profile settings).
+- A runtime `setOptions()` (proxy, timeouts, …), `setUrl()`, `setClient()`, `setTokenProvider()` or
+  `preserveParameters()` call on the shared instance does **not** apply to `translateTo()` / `translateManyTo()`:
+  put such settings in the profile configuration (or keep using the setters with `translate()`).
+- `GoogleTranslatorInterface $<profile>Translator` exists only when the camelized name is a valid PHP variable name
+  and unique: a profile named `2024`, `1st` or `0` gets no named alias, nor do `fr_ca` and `fr-ca` together (both
+  would be `$frCaTranslator`). Use the service id `nowo_google_translate_php.translator.<profile>` for those.
 - Failures are the bundle exceptions: vendor `catch` blocks still catch them (each extends the stichoza class), and the
   vendor exception is `getPrevious()`. Only an exact class comparison (`get_class($e) === RateLimitException::class`)
   changes.

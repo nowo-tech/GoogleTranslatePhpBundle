@@ -1,7 +1,7 @@
 demo_home:
     path: /
     controller: App\Controller\DemoController::home
-    methods: [GET]
+    methods: [GET, POST]
 
 when@dev:
     nowo_twig_inspector:

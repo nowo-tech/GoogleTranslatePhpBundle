@@ -4,30 +4,44 @@ declare(strict_types=1);
 
 namespace App\Form;
 
+use Nowo\FormKitBundle\Attribute\FormKitConfig;
+use Nowo\FormKitBundle\Form\FormOptionsTrait;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
- * Demo form: text to translate (REQ-TWIG-005: rendered with form_start / form_row, no raw markup).
+ * Demo form: text to translate (REQ-DEMO-015: a FormKit form, profile `demo`).
  * No CSRF token: translating is read-only (no state is changed on the server).
+ *
+ * @extends AbstractType<array{text?: string|null}>
  */
+#[FormKitConfig('demo')]
 final class TranslateFormType extends AbstractType
 {
+    use FormOptionsTrait;
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        $builder->add('text', TextareaType::class, [
-            'label' => 'Text to translate (auto-detect → Spanish)',
-            'attr'  => ['rows' => 4, 'cols' => 60],
+        $this->addTextarea($builder, 'text', [
+            'label'       => 'Text to translate (auto-detect → Spanish)',
+            'placeholder' => false,
+            'help'        => false,
+            'attr'        => ['rows' => 4],
+        ]);
+        $this->addWithDefaults($builder, 'submit', SubmitType::class, [
+            'label' => 'Translate',
+            'attr'  => ['class' => 'nowo-ui-btn nowo-ui-btn--primary'],
         ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'method'          => 'POST',
-            'csrf_protection' => false,
+            'method'             => 'POST',
+            'csrf_protection'    => false,
+            'translation_domain' => false,
         ]);
     }
 

@@ -30,7 +30,7 @@ Production surface under `src/`: **7** units (6 PHP + 1 YAML config).
 | FR-CFG-001 | Config tree exposes `default_profile` and at least one named entry under `profiles` (target, source, timeouts, client, url, preserve_parameters, guzzle_options). |
 | FR-CFG-002 | Extension registers one `WorkerSafeGoogleTranslate` service per profile (`nowo_google_translate_php.translator.<name>`), aliases the default profile for autowiring, and tags each definition with `kernel.reset`. |
 | FR-CFG-003 | When `default_profile` is not a key under `profiles`, boot fails with `UnknownProfileException`. |
-| FR-WORKER-001 | Extension registers `ResetTranslatorsOnRequestSubscriber` with an iterator of profile references (`IGNORE_ON_UNINITIALIZED_REFERENCE`) so only already-instantiated translators are reset on each main `kernel.request` (priority 4096). |
+| FR-WORKER-001 | Extension registers `ResetTranslatorsOnRequestSubscriber` with an iterator of profile references (`IGNORE_ON_UNINITIALIZED_REFERENCE`) so only already-instantiated translators are reset on each main `kernel.request` (priority 4096). `Worker\UnitOfWorkFrames` limits the boundary work to the outermost request, Messenger message or console command (REQ-RUNTIME-002). |
 
 ### Translator / runtime
 
@@ -44,6 +44,8 @@ Production surface under `src/`: **7** units (6 PHP + 1 YAML config).
 | FR-TR-006 | Static `trans()` builds a fresh instance per call and applies default timeouts when missing. |
 | FR-OBS-001 | Outbound `translate()` logs start/success/failure with structured metadata (`bundle`, `action`, `target`, `source`, `bytes`) and never logs source text. |
 | FR-SEC-001 | Profile `url` overrides must be `https://` (or null/empty); non-HTTPS values are rejected by the config tree. |
+| FR-PORT-001 | `Contract\GoogleTranslatorInterface` is the translation port (since 1.4): integrators type-hint it instead of the stichoza `GoogleTranslate` class; every profile service implements it (REQ-ARCH-001). |
+| FR-ERR-001 | Every translation failure is reported as a `TranslationExceptionInterface` (request failed, rate limited, text too large, decoding failed, languages request failed); each class extends the matching stichoza exception, so existing `catch` blocks keep working. |
 
 ### Resources
 
@@ -97,7 +99,7 @@ Production surface under `src/`: **7** units (6 PHP + 1 YAML config).
 
 | ID | Criterion |
 | --- | --- |
-| SC-01 | Inventory maps **7/7** production units under `src/` to semantic `FR-*` IDs (no `FR-SRC-*`). |
+| SC-01 | Inventory maps **15/15** production units under `src/` to semantic `FR-*` IDs (no `FR-SRC-*`). |
 | SC-02 | PHPUnit line coverage on `src/` is **100%** (`make test-coverage` / `composer coverage-check`). |
 | SC-03 | PHPStan with FrankenPHP classic + worker rulesets exits **0**. |
 | SC-04 | `WorkerModeWithoutResetTest` proves consecutive main requests without framework `reset()` restore defaults. |

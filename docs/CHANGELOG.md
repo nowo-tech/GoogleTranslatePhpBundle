@@ -30,6 +30,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Documentation
+
+- Spec Kit baseline: `code-inventory.md` maps all 15 `src/` files again (the 1.4 translation port, exception hierarchy and `Worker\UnitOfWorkFrames` were missing) and `spec.md` gains `FR-PORT-001` and `FR-ERR-001` (REQ-SPECKIT-001/003).
+
 ### Changed
 
 - Demo uses the UiKit base style and FormKit forms (REQ-DEMO-014/015)

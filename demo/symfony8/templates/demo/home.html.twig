@@ -10,36 +10,39 @@
 {% endblock %}
 
 {% block body %}
-    <section class="nowo-ui-card">
-        <div class="nowo-ui-card__body">
-            <p>
-                <span class="nowo-ui-badge nowo-ui-badge--info">{{ version_badge }}</span>
-                Profile timeouts (REQ-RUNTIME-001):
-                <code class="nowo-ui-code">timeout={{ timeout }}s</code>,
-                <code class="nowo-ui-code">connect_timeout={{ connect_timeout }}s</code>
-            </p>
+    {% embed '@NowoUiKit/demo_platform/_section.html.twig' with {title: 'Client profile', intro: 'Profile timeouts (REQ-RUNTIME-001).', kind: 'detail', testid: 'demo-profile'} %}
+        {% block section_actions %}<span class="nowo-ui-badge nowo-ui-badge--info">{{ version_badge }}</span>{% endblock %}
+        {% block section_body %}
+            <dl class="nowo-ui-detail-list">
+                <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">timeout</dt><dd class="nowo-ui-detail-list__value"><code class="nowo-ui-code">timeout={{ timeout }}s</code></dd></div>
+                <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">connect_timeout</dt><dd class="nowo-ui-detail-list__value"><code class="nowo-ui-code">connect_timeout={{ connect_timeout }}s</code></dd></div>
+            </dl>
+        {% endblock %}
+    {% endembed %}
 
-            {{ form_start(form) }}
+    {% embed '@NowoUiKit/demo_platform/_section.html.twig' with {title: 'Translate', kind: 'form', testid: 'demo-form'} %}
+        {% block section_body %}
+            {{ form_start(form, {attr: {id: 'translate-form', class: 'nowo-ui-form'}}) }}
                 {% for child in form %}
-                    {% if not child.rendered %}
+                    {% if not child.rendered and child.vars.name != 'submit' %}
                         {{ form_row(child) }}
                     {% endif %}
                 {% endfor %}
-            {{ form_end(form) }}
-        </div>
-    </section>
-
-    {% if error %}
-        <div class="nowo-ui-flash nowo-ui-flash--error" role="alert"><strong>Error:</strong> {{ error }}</div>
-    {% endif %}
+            {{ form_end(form, {render_rest: false}) }}
+        {% endblock %}
+        {% block section_footer %}
+            <button type="submit" form="translate-form" class="nowo-ui-btn nowo-ui-btn--primary">{{ form.submit.vars.label }}</button>
+        {% endblock %}
+    {% endembed %}
 
     {% if translated is not null %}
-        <section class="nowo-ui-card">
-            <header class="nowo-ui-card__header"><h2 class="nowo-ui-card__title">Result</h2></header>
-            <div class="nowo-ui-card__body">
-                <p><strong>Detected source:</strong> {{ detected ?? 'n/a' }}</p>
-                <pre class="nowo-ui-code-block">{{ translated }}</pre>
-            </div>
-        </section>
+        {% embed '@NowoUiKit/demo_platform/_section.html.twig' with {title: 'Result', kind: 'detail', testid: 'demo-result'} %}
+            {% block section_body %}
+                <dl class="nowo-ui-detail-list">
+                    <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Detected source</dt><dd class="nowo-ui-detail-list__value">{{ detected ?? 'n/a' }}</dd></div>
+                    <div class="nowo-ui-detail-list__item"><dt class="nowo-ui-detail-list__term">Translation</dt><dd class="nowo-ui-detail-list__value"><pre class="nowo-ui-code-block">{{ translated }}</pre></dd></div>
+                </dl>
+            {% endblock %}
+        {% endembed %}
     {% endif %}
 {% endblock %}

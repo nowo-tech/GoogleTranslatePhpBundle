@@ -32,7 +32,6 @@ final class DemoController extends AbstractController
         $data       = $form->getData();
         $input      = trim((string) ($data['text'] ?? ''));
         $translated = null;
-        $error      = null;
         $detected   = null;
 
         if ($form->isSubmitted() && $form->isValid() && $input !== '') {
@@ -40,11 +39,11 @@ final class DemoController extends AbstractController
                 $translated = $this->translator->translate($input);
                 $detected   = $this->translator->getLastDetectedSource();
             } catch (RateLimitException $e) {
-                $error = 'Rate limited by Google Translate: ' . $e->getMessage();
+                $this->addFlash('error', 'Rate limited by Google Translate: ' . $e->getMessage());
             } catch (TranslationRequestException $e) {
-                $error = 'Translation request failed (network/timeout): ' . $e->getMessage();
+                $this->addFlash('error', 'Translation request failed (network/timeout): ' . $e->getMessage());
             } catch (Throwable $e) {
-                $error = 'Unexpected error: ' . $e->getMessage();
+                $this->addFlash('error', 'Unexpected error: ' . $e->getMessage());
             }
         }
 
@@ -54,7 +53,6 @@ final class DemoController extends AbstractController
             'input'           => $input,
             'translated'      => $translated,
             'detected'        => $detected,
-            'error'           => $error,
             'timeout'         => 10.0,
             'connect_timeout' => 5.0,
         ]);

@@ -595,7 +595,7 @@
             "dist": {
                 "type": "path",
                 "url": "/var/google-translate-php-bundle",
-                "reference": "88b78a223ff2c63b5adcf942a01a4cfeebe00505"
+                "reference": "7aa8b7e1ec4a50158d7ad7316f49040bafdc97ed"
             },
             "require": {
                 "php": ">=8.2 <8.6",

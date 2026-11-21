@@ -36,6 +36,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Changed
 
+- Demo: runs in UiKit's demo platform shell (`nowo-tech/ui-kit-bundle` ^2.60); the demo's own header is gone and the page uses the shell page header and section cards; the error message is a shell flash. The demo gains a minimal Playwright e2e (`make test-e2e`). Demo only, no bundle change.
 - Demo uses the UiKit base style and FormKit forms (REQ-DEMO-014/015)
 
 ### Fixed

@@ -16,5 +16,6 @@ class DemoControllerTest extends WebTestCase
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('h1', 'GoogleTranslatePhpBundle');
         self::assertSelectorExists('form');
+        self::assertSelectorExists('[data-testid="demo-platform"]');
     }
 }

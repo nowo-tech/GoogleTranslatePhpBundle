@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 use Nowo\FormKitBundle\NowoFormKitBundle;
 use Nowo\GoogleTranslatePhpBundle\GoogleTranslatePhpBundle;
 use Nowo\HotReloadBundle\NowoHotReloadBundle;
